@@ -3673,7 +3673,7 @@ typedef struct {
                          * a new one? */
   int MaxCircuitDirtiness; /**< Never use circs that were first used more than
                                 this interval ago. */
-  int PredictedCircsRelevanceTime; /** How long after we've seen a request for 
+  int PredictedCircsRelevanceTime; /** How long after we've seen a request for
                                     * a given port, do we want to continue
                                     * to make connections to the same port?  */
   uint64_t BandwidthRate; /**< How much bandwidth, on average, are we willing

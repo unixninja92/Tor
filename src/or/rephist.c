@@ -500,7 +500,7 @@ get_stability(or_history_t *hist, time_t when)
   if (total_weights < STABILITY_EPSILON) {
     /* Round down to zero, and avoid divide-by-zero. */
     return 0.0;
-  } 
+  }
 
   return total / total_weights;
 }
