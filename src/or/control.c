@@ -1491,7 +1491,7 @@ getinfo_helper_misc(control_connection_t *conn, const char *question,
     }
     server_key = get_server_identity_key();
     *answer = tor_malloc(HEX_DIGEST_LEN+1);
-    crypto_pk_get_fingerprint(server_key, (uint8_t *)*answer, 0);
+    crypto_pk_get_fingerprint(server_key, *answer, 0);
   }
   return 0;
 }

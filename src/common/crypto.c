@@ -1257,10 +1257,10 @@ crypto_pk_get_all_digests(crypto_pk_t *pk, digests_t *digests_out)
 /** Copy <b>in</b> to the <b>outlen</b>-byte buffer <b>out</b>, adding spaces
  * every four spaces. */
 void
-crypto_add_spaces_to_fp(uint8_t *out, size_t outlen, const uint8_t *in)
+crypto_add_spaces_to_fp(char *out, size_t outlen, const char *in)
 {
   int n = 0;
-  uint8_t *end = out+outlen;
+  char *end = out+outlen;
   tor_assert(outlen < SIZE_T_CEILING);
 
   while (*in && out<end) {
@@ -1285,18 +1285,18 @@ crypto_add_spaces_to_fp(uint8_t *out, size_t outlen, const uint8_t *in)
  * If <b>add_space</b> is false, omit the spaces.
  */
 int
-crypto_pk_get_fingerprint(crypto_pk_t *pk, uint8_t *fp_out, int add_space)
+crypto_pk_get_fingerprint(crypto_pk_t *pk, char *fp_out, int add_space)
 {
   uint8_t digest[DIGEST_LEN];
   char hexdigest[HEX_DIGEST_LEN+1];
   if (crypto_pk_get_digest(pk, digest)) {
     return -1;
   }
-  base16_encode(hexdigest,sizeof(hexdigest),(const char *)digest,DIGEST_LEN);
+  base16_encode(hexdigest,sizeof(hexdigest),(char *)digest,DIGEST_LEN);
   if (add_space) {
-    crypto_add_spaces_to_fp(fp_out, FINGERPRINT_LEN+1, (uint8_t *)hexdigest);
+    crypto_add_spaces_to_fp(fp_out, FINGERPRINT_LEN+1, hexdigest);
   } else {
-    strncpy((char*)fp_out, hexdigest, HEX_DIGEST_LEN+1);
+    strncpy(fp_out, hexdigest, HEX_DIGEST_LEN+1);
   }
   return 0;
 }

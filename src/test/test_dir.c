@@ -77,7 +77,7 @@ test_dir_formats(void)
   char *buf = NULL;
   char buf2[8192];
   char platform[256];
-  uint8_t fingerprint[FINGERPRINT_LEN+1];
+  char fingerprint[FINGERPRINT_LEN+1];
   char *pk1_str = NULL, *pk2_str = NULL, *cp;
   size_t pk1_str_len, pk2_str_len;
   routerinfo_t *r1=NULL, *r2=NULL;

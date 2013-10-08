@@ -187,7 +187,7 @@ format_networkstatus_vote(crypto_pk_t *private_signing_key,
                           (uint8_t *)"directory-signature ", DIGEST_SHA1);
 
   {
-    uint8_t signing_key_fingerprint[FINGERPRINT_LEN+1];
+    char signing_key_fingerprint[FINGERPRINT_LEN+1];
     if (crypto_pk_get_fingerprint(private_signing_key,
                                   signing_key_fingerprint, 0)<0) {
       log_warn(LD_BUG, "Unable to get fingerprint for signing key");
@@ -195,7 +195,7 @@ format_networkstatus_vote(crypto_pk_t *private_signing_key,
     }
 
     smartlist_add_asprintf(chunks, "directory-signature %s %s\n", fingerprint,
-                           (char*)signing_key_fingerprint);
+                           signing_key_fingerprint);
   }
 
   note_crypto_pk_op(SIGN_DIR);
@@ -2080,8 +2080,8 @@ networkstatus_compute_consensus(smartlist_t *votes,
   /* Add a signature. */
   {
     uint8_t digest[DIGEST256_LEN];
-    uint8_t fingerprint[HEX_DIGEST_LEN+1];
-    uint8_t signing_key_fingerprint[HEX_DIGEST_LEN+1];
+    char fingerprint[HEX_DIGEST_LEN+1];
+    char signing_key_fingerprint[HEX_DIGEST_LEN+1];
     digest_algorithm_t digest_alg =
       flavor == FLAV_NS ? DIGEST_SHA1 : DIGEST_SHA256;
     size_t digest_len =
@@ -2118,7 +2118,7 @@ networkstatus_compute_consensus(smartlist_t *votes,
 
     if (legacy_id_key_digest && legacy_signing_key && consensus_method >= 3) {
       smartlist_add(chunks, tor_strdup("directory-signature "));
-      base16_encode((char*)fingerprint, sizeof(fingerprint),
+      base16_encode(fingerprint, sizeof(fingerprint),
                     legacy_id_key_digest, DIGEST_LEN);
       crypto_pk_get_fingerprint(legacy_signing_key,
                                 signing_key_fingerprint, 0);

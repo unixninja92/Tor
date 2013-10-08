@@ -2601,7 +2601,7 @@ tor_cleanup(void)
 static int
 do_list_fingerprint(void)
 {
-  uint8_t buf[FINGERPRINT_LEN+1];
+  char buf[FINGERPRINT_LEN+1];
   crypto_pk_t *k;
   const char *nickname = get_options()->Nickname;
   if (!server_mode(get_options())) {

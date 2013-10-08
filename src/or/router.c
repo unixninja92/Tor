@@ -692,7 +692,7 @@ int
 init_keys(void)
 {
   char *keydir;
-  uint8_t fingerprint[FINGERPRINT_LEN+1];
+  char fingerprint[FINGERPRINT_LEN+1];
   /*nickname<space>fp\n\0 */
   char fingerprint_line[MAX_NICKNAME_LEN+FINGERPRINT_LEN+3];
   const char *mydesc;
@@ -2278,7 +2278,7 @@ router_dump_router_to_string(routerinfo_t *router,
   char *identity_pkey = NULL; /* Identity key, PEM-encoded. */
   uint8_t digest[DIGEST_LEN];
   char published[ISO_TIME_LEN+1];
-  uint8_t fingerprint[FINGERPRINT_LEN+1];
+  char fingerprint[FINGERPRINT_LEN+1];
   int has_extra_info_digest;
   char extra_info_digest[HEX_DIGEST_LEN+1];
   size_t onion_pkeylen, identity_pkeylen;

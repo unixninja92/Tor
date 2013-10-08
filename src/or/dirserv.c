@@ -198,14 +198,14 @@ add_fingerprint_to_dir(const char *nickname, const char *fp,
 int
 dirserv_add_own_fingerprint(const char *nickname, crypto_pk_t *pk)
 {
-  uint8_t fp[FINGERPRINT_LEN+1];
+  char fp[FINGERPRINT_LEN+1];
   if (crypto_pk_get_fingerprint(pk, fp, 0)<0) {
     log_err(LD_BUG, "Error computing fingerprint");
     return -1;
   }
   if (!fingerprint_list)
     fingerprint_list = authdir_config_new();
-  add_fingerprint_to_dir(nickname, (char*)fp, fingerprint_list);
+  add_fingerprint_to_dir(nickname, fp, fingerprint_list);
   return 0;
 }
 
@@ -3177,7 +3177,7 @@ generate_v2_networkstatus_opinion(void)
   char *status = NULL, *client_versions = NULL, *server_versions = NULL,
     *identity_pkey = NULL, *hostname = NULL;
   const or_options_t *options = get_options();
-  uint8_t fingerprint[FINGERPRINT_LEN+1];
+  char fingerprint[FINGERPRINT_LEN+1];
   char published[ISO_TIME_LEN+1];
   uint8_t digest[DIGEST_LEN];
   uint32_t addr;

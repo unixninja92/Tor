@@ -182,7 +182,7 @@ int crypto_pk_asn1_encode(crypto_pk_t *pk, uint8_t *dest, size_t dest_len);
 crypto_pk_t *crypto_pk_asn1_decode(const uint8_t *str, size_t len);
 int crypto_pk_get_digest(crypto_pk_t *pk, uint8_t *digest_out);
 int crypto_pk_get_all_digests(crypto_pk_t *pk, digests_t *digests_out);
-int crypto_pk_get_fingerprint(crypto_pk_t *pk, uint8_t *fp_out,int add_space);
+int crypto_pk_get_fingerprint(crypto_pk_t *pk, char *fp_out,int add_space);
 
 /* symmetric crypto */
 const uint8_t *crypto_cipher_get_key(crypto_cipher_t *env);
@@ -299,7 +299,7 @@ struct evp_pkey_st *crypto_pk_get_evp_pkey_(crypto_pk_t *env,
                                                 int private);
 struct dh_st *crypto_dh_get_dh_(crypto_dh_t *dh);
 
-void crypto_add_spaces_to_fp(uint8_t *out, size_t outlen, const uint8_t *in);
+void crypto_add_spaces_to_fp(char *out, size_t outlen, const char *in);
 
 #endif
 

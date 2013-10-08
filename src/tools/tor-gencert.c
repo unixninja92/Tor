@@ -397,7 +397,7 @@ key_to_string(EVP_PKEY *key)
 
 /** Set <b>out</b> to the hex-encoded fingerprint of <b>pkey</b>. */
 static int
-get_fingerprint(EVP_PKEY *pkey, unsigned char *out)
+get_fingerprint(EVP_PKEY *pkey, char *out)
 {
   int r = 1;
   crypto_pk_t *pk = crypto_new_pk_from_rsa_(EVP_PKEY_get1_RSA(pkey));
@@ -432,7 +432,7 @@ generate_certificate(void)
   char published[ISO_TIME_LEN+1];
   char expires[ISO_TIME_LEN+1];
   unsigned char id_digest[DIGEST_LEN];
-  unsigned char fingerprint[FINGERPRINT_LEN+1];
+  char fingerprint[FINGERPRINT_LEN+1];
   char *ident = key_to_string(identity_key);
   char *signing = key_to_string(signing_key);
   FILE *f;

@@ -553,7 +553,7 @@ test_crypto_digests(void)
 static void
 test_crypto_formats(void)
 {
-  uint8_t *data1 = NULL, *data2 = NULL, *data3 = NULL;
+  char *data1 = NULL, *data2 = NULL, *data3 = NULL;
   int i, j, idx;
 
   data1 = tor_malloc(1024);
@@ -564,76 +564,76 @@ test_crypto_formats(void)
   /* Base64 tests */
   memset(data1, 6, 1024);
   for (idx = 0; idx < 10; ++idx) {
-    i = base64_encode((char*)data2, 1024, (char*)data1, idx);
+    i = base64_encode(data2, 1024, data1, idx);
     test_assert(i >= 0);
-    j = base64_decode((char*)data3, 1024, (char*)data2, i);
+    j = base64_decode(data3, 1024, data2, i);
     test_eq(j,idx);
     test_memeq(data3, data1, idx);
   }
 
-  strlcpy((char*)data1, "Test string that contains 35 chars.", 1024);
-  strlcat((char*)data1, " 2nd string that contains 35 chars.", 1024);
+  strlcpy(data1, "Test string that contains 35 chars.", 1024);
+  strlcat(data1, " 2nd string that contains 35 chars.", 1024);
 
-  i = base64_encode((char*)data2, 1024, (char*)data1, 71);
+  i = base64_encode(data2, 1024, data1, 71);
   test_assert(i >= 0);
-  j = base64_decode((char*)data3, 1024, (char*)data2, i);
+  j = base64_decode(data3, 1024, data2, i);
   test_eq(j, 71);
   test_streq(data3, data1);
   test_assert(data2[i] == '\0');
 
-  crypto_rand(data1, DIGEST_LEN);
+  crypto_rand((uint8_t*)data1, DIGEST_LEN);
   memset(data2, 100, 1024);
-  digest_to_base64((char*)data2, (char*)data1);
-  test_eq(BASE64_DIGEST_LEN, strlen((char*)data2));
+  digest_to_base64(data2, data1);
+  test_eq(BASE64_DIGEST_LEN, strlen(data2));
   test_eq(100, data2[BASE64_DIGEST_LEN+2]);
   memset(data3, 99, 1024);
-  test_eq(digest_from_base64((char*)data3, (char*)data2), 0);
+  test_eq(digest_from_base64(data3, data2), 0);
   test_memeq(data1, data3, DIGEST_LEN);
   test_eq(99, data3[DIGEST_LEN+1]);
 
-  test_assert(digest_from_base64((char*)data3, "###") < 0);
+  test_assert(digest_from_base64(data3, "###") < 0);
 
   /* Encoding SHA256 */
-  crypto_rand(data2, DIGEST256_LEN);
+  crypto_rand((uint8_t*)data2, DIGEST256_LEN);
   memset(data2, 100, 1024);
-  digest256_to_base64((char*)data2, (char*)data1);
-  test_eq(BASE64_DIGEST256_LEN, strlen((char*)data2));
+  digest256_to_base64(data2, data1);
+  test_eq(BASE64_DIGEST256_LEN, strlen(data2));
   test_eq(100, data2[BASE64_DIGEST256_LEN+2]);
   memset(data3, 99, 1024);
-  test_eq(digest256_from_base64((char*)data3, (char*)data2), 0);
+  test_eq(digest256_from_base64(data3, data2), 0);
   test_memeq(data1, data3, DIGEST256_LEN);
   test_eq(99, data3[DIGEST256_LEN+1]);
 
   /* Base32 tests */
-  strlcpy((char*)data1, "5chrs", 1024);
+  strlcpy(data1, "5chrs", 1024);
   /* bit pattern is:  [35 63 68 72 73] ->
    *        [00110101 01100011 01101000 01110010 01110011]
    * By 5s: [00110 10101 10001 10110 10000 11100 10011 10011]
    */
-  base32_encode((char*)data2, 9, (char*)data1, 5);
+  base32_encode(data2, 9, data1, 5);
   test_streq(data2, "gvrwq4tt");
 
-  strlcpy((char*)data1, "\xFF\xF5\x6D\x44\xAE\x0D\x5C\xC9\x62\xC4", 1024);
-  base32_encode((char*)data2, 30, (char*)data1, 10);
+  strlcpy(data1, "\xFF\xF5\x6D\x44\xAE\x0D\x5C\xC9\x62\xC4", 1024);
+  base32_encode(data2, 30, data1, 10);
   test_streq(data2, "772w2rfobvomsywe");
 
   /* Base16 tests */
-  strlcpy((char*)data1, "6chrs\xff", 1024);
-  base16_encode((char*)data2, 13, (char*)data1, 6);
+  strlcpy(data1, "6chrs\xff", 1024);
+  base16_encode(data2, 13, data1, 6);
   test_streq(data2, "3663687273FF");
 
-  strlcpy((char*)data1, "f0d678affc000100", 1024);
-  i = base16_decode((char*)data2, 8, (char*)data1, 16);
+  strlcpy(data1, "f0d678affc000100", 1024);
+  i = base16_decode(data2, 8, data1, 16);
   test_eq(i,0);
   test_memeq(data2, "\xf0\xd6\x78\xaf\xfc\x00\x01\x00",8);
 
   /* now try some failing base16 decodes */
      /* odd input len */
-  test_eq(-1, base16_decode((char*)data2, 8, (char*)data1, 15));
+  test_eq(-1, base16_decode(data2, 8, data1, 15));
      /* dest too short */
-  test_eq(-1, base16_decode((char*)data2, 7, (char*)data1, 16));
-  strlcpy((char*)data1, "f0dz!8affc000100", 1024);
-  test_eq(-1, base16_decode((char*)data2, 8, (char*)data1, 16));
+  test_eq(-1, base16_decode(data2, 7, data1, 16));
+  strlcpy(data1, "f0dz!8affc000100", 1024);
+  test_eq(-1, base16_decode(data2, 8, data1, 16));
 
   tor_free(data1);
   tor_free(data2);
@@ -641,8 +641,8 @@ test_crypto_formats(void)
 
   /* Add spaces to fingerprint */
   {
-    data1 = (uint8_t*)tor_strdup("ABCD1234ABCD56780000ABCD1234ABCD56780000");
-    test_eq(strlen((char*)data1), 40);
+    data1 = tor_strdup("ABCD1234ABCD56780000ABCD1234ABCD56780000");
+    test_eq(strlen(data1), 40);
     data2 = tor_malloc(FINGERPRINT_LEN+1);
     crypto_add_spaces_to_fp(data2, FINGERPRINT_LEN+1, data1);
     test_streq(data2, "ABCD 1234 ABCD 5678 0000 ABCD 1234 ABCD 5678 0000");

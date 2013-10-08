@@ -64,7 +64,7 @@ main(int c, char **v)
   tor_free(str);
 
   if (wantdigest) {
-    uint8_t digest[HEX_DIGEST_LEN+1];
+    char digest[HEX_DIGEST_LEN+1];
     if (crypto_pk_get_fingerprint(env, digest, 0)<0)
       return 1;
     printf("%s\n",digest);
