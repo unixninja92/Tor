@@ -185,7 +185,7 @@ int crypto_pk_get_all_digests(crypto_pk_t *pk, digests_t *digests_out);
 int crypto_pk_get_fingerprint(crypto_pk_t *pk, uint8_t *fp_out,int add_space);
 
 /* symmetric crypto */
-const char *crypto_cipher_get_key(crypto_cipher_t *env);
+const uint8_t *crypto_cipher_get_key(crypto_cipher_t *env);
 
 int crypto_cipher_encrypt(crypto_cipher_t *env, uint8_t *to,
                           const uint8_t *from, size_t fromlen);
@@ -252,7 +252,7 @@ int crypto_expand_key_material_rfc5869_sha256(
 
 /* random numbers */
 int crypto_seed_rng(int startup);
-MOCK_DECL(int,crypto_rand,(char *to, size_t n));
+MOCK_DECL(int,crypto_rand,(uint8_t *to, size_t n));
 int crypto_strongest_rand(uint8_t *out, size_t out_len);
 int crypto_rand_int(unsigned int max);
 uint64_t crypto_rand_uint64(uint64_t max);

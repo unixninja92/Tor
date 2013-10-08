@@ -16,7 +16,7 @@
 struct aes_cnt_cipher;
 typedef struct aes_cnt_cipher aes_cnt_cipher_t;
 
-aes_cnt_cipher_t* aes_new_cipher(const char *key, const char *iv);
+aes_cnt_cipher_t* aes_new_cipher(const uint8_t *key, const uint8_t *iv);
 void aes_cipher_free(aes_cnt_cipher_t *cipher);
 void aes_crypt(aes_cnt_cipher_t *cipher, const uint8_t *input, size_t len,
                uint8_t *output);

@@ -92,8 +92,8 @@ struct crypto_pk_t
 /** Key and stream information for a stream cipher. */
 struct crypto_cipher_t
 {
-  char key[CIPHER_KEY_LEN]; /**< The raw key. */
-  char iv[CIPHER_IV_LEN]; /**< The initial IV. */
+  uint8_t key[CIPHER_KEY_LEN]; /**< The raw key. */
+  uint8_t iv[CIPHER_IV_LEN]; /**< The initial IV. */
   aes_cnt_cipher_t *cipher; /**< The key in format usable for counter-mode AES
                              * encryption */
 };
@@ -1305,7 +1305,7 @@ crypto_pk_get_fingerprint(crypto_pk_t *pk, uint8_t *fp_out, int add_space)
 
 /** Return a pointer to the key set for the cipher in <b>env</b>.
  */
-const char *
+const uint8_t *
 crypto_cipher_get_key(crypto_cipher_t *env)
 {
   return env->key;
@@ -2424,12 +2424,12 @@ crypto_seed_rng(int startup)
  * success, -1 on failure.
  */
 MOCK_IMPL(int,
-crypto_rand, (char *to, size_t n))
+crypto_rand, (uint8_t *to, size_t n))
 {
   int r;
   tor_assert(n < INT_MAX);
   tor_assert(to);
-  r = RAND_bytes((unsigned char*)to, (int)n);
+  r = RAND_bytes(to, (int)n);
   if (r == 0)
     crypto_log_errors(LOG_WARN, "generating random data");
   return (r == 1) ? 0 : -1;
@@ -2452,7 +2452,7 @@ crypto_rand_int(unsigned int max)
    */
   cutoff = UINT_MAX - (UINT_MAX%max);
   while (1) {
-    crypto_rand((char*)&val, sizeof(val));
+    crypto_rand((uint8_t *)&val, sizeof(val));
     if (val < cutoff)
       return val % max;
   }
@@ -2474,7 +2474,7 @@ crypto_rand_uint64(uint64_t max)
    */
   cutoff = UINT64_MAX - (UINT64_MAX%max);
   while (1) {
-    crypto_rand((char*)&val, sizeof(val));
+    crypto_rand((uint8_t*)&val, sizeof(val));
     if (val < cutoff)
       return val % max;
   }
@@ -2489,7 +2489,7 @@ crypto_rand_double(void)
   /* We just use an unsigned int here; we don't really care about getting
    * more than 32 bits of resolution */
   unsigned int uint;
-  crypto_rand((char*)&uint, sizeof(uint));
+  crypto_rand((uint8_t*)&uint, sizeof(uint));
 #if SIZEOF_INT == 4
 #define UINT_MAX_AS_DOUBLE 4294967296.0
 #elif SIZEOF_INT == 8
@@ -2511,7 +2511,8 @@ char *
 crypto_random_hostname(int min_rand_len, int max_rand_len, const char *prefix,
                        const char *suffix)
 {
-  char *result, *rand_bytes;
+  char *result;
+  uint8_t *rand_bytes;
   int randlen, rand_bytes_len;
   size_t resultlen, prefixlen;
 
@@ -2534,7 +2535,7 @@ crypto_random_hostname(int min_rand_len, int max_rand_len, const char *prefix,
   result = tor_malloc(resultlen);
   memcpy(result, prefix, prefixlen);
   base32_encode(result+prefixlen, resultlen-prefixlen,
-                rand_bytes, rand_bytes_len);
+                (const char *)rand_bytes, rand_bytes_len);
   tor_free(rand_bytes);
   strlcpy(result+prefixlen+randlen, suffix, resultlen-(prefixlen+randlen));
 

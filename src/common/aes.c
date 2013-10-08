@@ -93,12 +93,11 @@ struct aes_cnt_cipher {
 };
 
 aes_cnt_cipher_t *
-aes_new_cipher(const char *key, const char *iv)
+aes_new_cipher(const uint8_t *key, const uint8_t *iv)
 {
   aes_cnt_cipher_t *cipher;
   cipher = tor_malloc_zero(sizeof(aes_cnt_cipher_t));
-  EVP_EncryptInit(&cipher->evp, EVP_aes_128_ctr(),
-                  (const unsigned char*)key, (const unsigned char *)iv);
+  EVP_EncryptInit(&cipher->evp, EVP_aes_128_ctr(), key, iv);
   return cipher;
 }
 void
@@ -302,16 +301,16 @@ aes_fill_buf_(aes_cnt_cipher_t *cipher)
   }
 }
 
-static void aes_set_key(aes_cnt_cipher_t *cipher, const char *key,
+static void aes_set_key(aes_cnt_cipher_t *cipher, const uint8_t *key,
                         int key_bits);
-static void aes_set_iv(aes_cnt_cipher_t *cipher, const char *iv);
+static void aes_set_iv(aes_cnt_cipher_t *cipher, const uint8_t *iv);
 
 /**
  * Return a newly allocated counter-mode AES128 cipher implementation,
  * using the 128-bit key <b>key</b> and the 128-bit IV <b>iv</b>.
  */
 aes_cnt_cipher_t*
-aes_new_cipher(const char *key, const char *iv)
+aes_new_cipher(const uint8_t *key, const uint8_t *iv)
 {
   aes_cnt_cipher_t* result = tor_malloc_zero(sizeof(aes_cnt_cipher_t));
 
@@ -326,7 +325,7 @@ aes_new_cipher(const char *key, const char *iv)
  * the counter to 0.
  */
 static void
-aes_set_key(aes_cnt_cipher_t *cipher, const char *key, int key_bits)
+aes_set_key(aes_cnt_cipher_t *cipher, const uint8_t *key, int key_bits)
 {
   if (should_use_EVP) {
     const EVP_CIPHER *c;
@@ -336,10 +335,10 @@ aes_set_key(aes_cnt_cipher_t *cipher, const char *key, int key_bits)
       case 256: c = EVP_aes_256_ecb(); break;
       default: tor_assert(0);
     }
-    EVP_EncryptInit(&cipher->key.evp, c, (const unsigned char*)key, NULL);
+    EVP_EncryptInit(&cipher->key.evp, c, key, NULL);
     cipher->using_evp = 1;
   } else {
-    AES_set_encrypt_key((const unsigned char *)key, key_bits,&cipher->key.aes);
+    AES_set_encrypt_key(key, key_bits,&cipher->key.aes);
     cipher->using_evp = 0;
   }
 
@@ -499,7 +498,7 @@ aes_crypt_inplace(aes_cnt_cipher_t *cipher, uint8_t *data, size_t len)
 /** Reset the 128-bit counter of <b>cipher</b> to the 16-bit big-endian value
  * in <b>iv</b>. */
 static void
-aes_set_iv(aes_cnt_cipher_t *cipher, const char *iv)
+aes_set_iv(aes_cnt_cipher_t *cipher, const uint8_t *iv)
 {
 #ifdef USING_COUNTER_VARS
   cipher->counter3 = ntohl(get_uint32(iv));
