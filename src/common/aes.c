@@ -111,25 +111,23 @@ aes_cipher_free(aes_cnt_cipher_t *cipher)
   tor_free(cipher);
 }
 void
-aes_crypt(aes_cnt_cipher_t *cipher, const char *input, size_t len,
-          char *output)
+aes_crypt(aes_cnt_cipher_t *cipher, const uint8_t *input, size_t len,
+          uint8_t *output)
 {
   int outl;
 
   tor_assert(len < INT_MAX);
 
-  EVP_EncryptUpdate(&cipher->evp, (unsigned char*)output,
-                    &outl, (const unsigned char *)input, (int)len);
+  EVP_EncryptUpdate(&cipher->evp, output, &outl, input, (int)len);
 }
 void
-aes_crypt_inplace(aes_cnt_cipher_t *cipher, char *data, size_t len)
+aes_crypt_inplace(aes_cnt_cipher_t *cipher, uint8_t *data, size_t len)
 {
   int outl;
 
   tor_assert(len < INT_MAX);
 
-  EVP_EncryptUpdate(&cipher->evp, (unsigned char*)data,
-                    &outl, (unsigned char*)data, (int)len);
+  EVP_EncryptUpdate(&cipher->evp, data, &outl, data, (int)len);
 }
 int
 evaluate_evp_for_aes(int force_val)
@@ -404,8 +402,8 @@ evp_block128_fn(const uint8_t in[16],
  * by <b>len</b> bytes as it encrypts.
  */
 void
-aes_crypt(aes_cnt_cipher_t *cipher, const char *input, size_t len,
-          char *output)
+aes_crypt(aes_cnt_cipher_t *cipher, const uint8_t *input, size_t len,
+          uint8_t *output)
 {
 #ifdef CAN_USE_OPENSSL_CTR
   if (should_use_openssl_CTR) {
@@ -413,8 +411,8 @@ aes_crypt(aes_cnt_cipher_t *cipher, const char *input, size_t len,
       /* In openssl 1.0.0, there's an if'd out EVP_aes_128_ctr in evp.h.  If
        * it weren't disabled, it might be better just to use that.
        */
-      CRYPTO_ctr128_encrypt((const unsigned char *)input,
-                            (unsigned char *)output,
+      CRYPTO_ctr128_encrypt(input,
+                            output,
                             len,
                             &cipher->key.evp,
                             cipher->ctr_buf.buf,
@@ -422,8 +420,8 @@ aes_crypt(aes_cnt_cipher_t *cipher, const char *input, size_t len,
                             &cipher->pos,
                             evp_block128_fn);
     } else {
-      AES_ctr128_encrypt((const unsigned char *)input,
-                         (unsigned char *)output,
+      AES_ctr128_encrypt(input,
+                         output,
                          len,
                          &cipher->key.aes,
                          cipher->ctr_buf.buf,
@@ -464,7 +462,7 @@ aes_crypt(aes_cnt_cipher_t *cipher, const char *input, size_t len,
  * as it encrypts.
  */
 void
-aes_crypt_inplace(aes_cnt_cipher_t *cipher, char *data, size_t len)
+aes_crypt_inplace(aes_cnt_cipher_t *cipher, uint8_t *data, size_t len)
 {
 #ifdef CAN_USE_OPENSSL_CTR
   if (should_use_openssl_CTR) {

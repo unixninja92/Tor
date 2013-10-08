@@ -99,7 +99,7 @@ typedef enum {
  * once.
  **/
 typedef struct {
-  char d[N_DIGEST_ALGORITHMS][DIGEST256_LEN];
+  uint8_t d[N_DIGEST_ALGORITHMS][DIGEST256_LEN];
 } digests_t;
 
 typedef struct crypto_pk_t crypto_pk_t;
@@ -122,8 +122,9 @@ void crypto_pk_free(crypto_pk_t *env);
 
 void crypto_set_tls_dh_prime(const char *dynamic_dh_modulus_fname);
 
-crypto_cipher_t *crypto_cipher_new(const char *key);
-crypto_cipher_t *crypto_cipher_new_with_iv(const char *key, const char *iv);
+crypto_cipher_t *crypto_cipher_new(const uint8_t *key);
+crypto_cipher_t *crypto_cipher_new_with_iv(const uint8_t *key,
+                                           const uint8_t *iv);
 void crypto_cipher_free(crypto_cipher_t *env);
 
 /* public key crypto */
@@ -154,74 +155,76 @@ crypto_pk_t *crypto_pk_copy_full(crypto_pk_t *orig);
 int crypto_pk_key_is_private(const crypto_pk_t *key);
 int crypto_pk_public_exponent_ok(crypto_pk_t *env);
 
-int crypto_pk_public_encrypt(crypto_pk_t *env, char *to, size_t tolen,
-                             const char *from, size_t fromlen, int padding);
-int crypto_pk_private_decrypt(crypto_pk_t *env, char *to, size_t tolen,
-                              const char *from, size_t fromlen,
+int crypto_pk_public_encrypt(crypto_pk_t *env, uint8_t *to, size_t tolen,
+                             const uint8_t *from, size_t fromlen, int padding);
+int crypto_pk_private_decrypt(crypto_pk_t *env, uint8_t *to, size_t tolen,
+                              const uint8_t *from, size_t fromlen,
                               int padding, int warnOnFailure);
-int crypto_pk_public_checksig(crypto_pk_t *env, char *to, size_t tolen,
-                              const char *from, size_t fromlen);
-int crypto_pk_public_checksig_digest(crypto_pk_t *env, const char *data,
-                               size_t datalen, const char *sig, size_t siglen);
-int crypto_pk_private_sign(crypto_pk_t *env, char *to, size_t tolen,
-                           const char *from, size_t fromlen);
-int crypto_pk_private_sign_digest(crypto_pk_t *env, char *to, size_t tolen,
-                                  const char *from, size_t fromlen);
-int crypto_pk_public_hybrid_encrypt(crypto_pk_t *env, char *to,
+int crypto_pk_public_checksig(crypto_pk_t *env, uint8_t *to, size_t tolen,
+                              const uint8_t *from, size_t fromlen);
+int crypto_pk_public_checksig_digest(crypto_pk_t *env, const uint8_t *data,
+                               size_t datalen, const uint8_t *sig,
+                               size_t siglen);
+int crypto_pk_private_sign(crypto_pk_t *env, uint8_t *to, size_t tolen,
+                           const uint8_t *from, size_t fromlen);
+int crypto_pk_private_sign_digest(crypto_pk_t *env, uint8_t *to, size_t tolen,
+                                  const uint8_t *from, size_t fromlen);
+int crypto_pk_public_hybrid_encrypt(crypto_pk_t *env, uint8_t *to,
                                     size_t tolen,
-                                    const char *from, size_t fromlen,
+                                    const uint8_t *from, size_t fromlen,
                                     int padding, int force);
-int crypto_pk_private_hybrid_decrypt(crypto_pk_t *env, char *to,
+int crypto_pk_private_hybrid_decrypt(crypto_pk_t *env, uint8_t *to,
                                      size_t tolen,
-                                     const char *from, size_t fromlen,
+                                     const uint8_t *from, size_t fromlen,
                                      int padding, int warnOnFailure);
 
 int crypto_pk_asn1_encode(crypto_pk_t *pk, char *dest, size_t dest_len);
 crypto_pk_t *crypto_pk_asn1_decode(const char *str, size_t len);
-int crypto_pk_get_digest(crypto_pk_t *pk, char *digest_out);
+int crypto_pk_get_digest(crypto_pk_t *pk, uint8_t *digest_out);
 int crypto_pk_get_all_digests(crypto_pk_t *pk, digests_t *digests_out);
-int crypto_pk_get_fingerprint(crypto_pk_t *pk, char *fp_out,int add_space);
+int crypto_pk_get_fingerprint(crypto_pk_t *pk, uint8_t *fp_out,int add_space);
 
 /* symmetric crypto */
 const char *crypto_cipher_get_key(crypto_cipher_t *env);
 
-int crypto_cipher_encrypt(crypto_cipher_t *env, char *to,
-                          const char *from, size_t fromlen);
-int crypto_cipher_decrypt(crypto_cipher_t *env, char *to,
-                          const char *from, size_t fromlen);
-int crypto_cipher_crypt_inplace(crypto_cipher_t *env, char *d, size_t len);
+int crypto_cipher_encrypt(crypto_cipher_t *env, uint8_t *to,
+                          const uint8_t *from, size_t fromlen);
+int crypto_cipher_decrypt(crypto_cipher_t *env, uint8_t *to,
+                          const uint8_t *from, size_t fromlen);
+int crypto_cipher_crypt_inplace(crypto_cipher_t *env, uint8_t *d, size_t len);
 
-int crypto_cipher_encrypt_with_iv(const char *key,
-                                  char *to, size_t tolen,
-                                  const char *from, size_t fromlen);
-int crypto_cipher_decrypt_with_iv(const char *key,
-                                  char *to, size_t tolen,
-                                  const char *from, size_t fromlen);
+int crypto_cipher_encrypt_with_iv(const uint8_t *key,
+                                  uint8_t *to, size_t tolen,
+                                  const uint8_t *from, size_t fromlen);
+int crypto_cipher_decrypt_with_iv(const uint8_t *key,
+                                  uint8_t *to, size_t tolen,
+                                  const uint8_t *from, size_t fromlen);
 
 /* SHA-1 and other digests. */
-int crypto_digest(char *digest, const char *m, size_t len);
-int crypto_digest256(char *digest, const char *m, size_t len,
+int crypto_digest(uint8_t *digest, const uint8_t *m, size_t len);
+int crypto_digest256(uint8_t *digest, const uint8_t *m, size_t len,
                      digest_algorithm_t algorithm);
-int crypto_digest_all(digests_t *ds_out, const char *m, size_t len);
+int crypto_digest_all(digests_t *ds_out, const uint8_t *m, size_t len);
 struct smartlist_t;
-void crypto_digest_smartlist(char *digest_out, size_t len_out,
-                             const struct smartlist_t *lst, const char *append,
+void crypto_digest_smartlist(uint8_t *digest_out, size_t len_out,
+                             const struct smartlist_t *lst,
+                             const uint8_t *append,
                              digest_algorithm_t alg);
 const char *crypto_digest_algorithm_get_name(digest_algorithm_t alg);
 int crypto_digest_algorithm_parse_name(const char *name);
 crypto_digest_t *crypto_digest_new(void);
 crypto_digest_t *crypto_digest256_new(digest_algorithm_t algorithm);
 void crypto_digest_free(crypto_digest_t *digest);
-void crypto_digest_add_bytes(crypto_digest_t *digest, const char *data,
+void crypto_digest_add_bytes(crypto_digest_t *digest, const uint8_t *data,
                              size_t len);
 void crypto_digest_get_digest(crypto_digest_t *digest,
-                              char *out, size_t out_len);
+                              uint8_t *out, size_t out_len);
 crypto_digest_t *crypto_digest_dup(const crypto_digest_t *digest);
 void crypto_digest_assign(crypto_digest_t *into,
                           const crypto_digest_t *from);
-void crypto_hmac_sha256(char *hmac_out,
-                        const char *key, size_t key_len,
-                        const char *msg, size_t msg_len);
+void crypto_hmac_sha256(uint8_t *hmac_out,
+                        const uint8_t *key, size_t key_len,
+                        const uint8_t *msg, size_t msg_len);
 
 /* Key negotiation */
 #define DH_TYPE_CIRCUIT 1
@@ -279,8 +282,8 @@ int digest256_from_base64(char *digest, const char *d64);
 /** Length of RFC2440-style S2K specifier: the first 8 bytes are a salt, the
  * 9th describes how much iteration to do. */
 #define S2K_SPECIFIER_LEN 9
-void secret_to_key(char *key_out, size_t key_out_len, const char *secret,
-                   size_t secret_len, const char *s2k_specifier);
+void secret_to_key(uint8_t *key_out, size_t key_out_len, const uint8_t *secret,
+                   size_t secret_len, const uint8_t *s2k_specifier);
 
 /** OpenSSL-based utility functions. */
 void memwipe(void *mem, uint8_t byte, size_t sz);
@@ -296,7 +299,7 @@ struct evp_pkey_st *crypto_pk_get_evp_pkey_(crypto_pk_t *env,
                                                 int private);
 struct dh_st *crypto_dh_get_dh_(crypto_dh_t *dh);
 
-void crypto_add_spaces_to_fp(char *out, size_t outlen, const char *in);
+void crypto_add_spaces_to_fp(uint8_t *out, size_t outlen, const uint8_t *in);
 
 #endif
 
