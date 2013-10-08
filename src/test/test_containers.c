@@ -562,7 +562,7 @@ static void
 test_container_digestset(void)
 {
   smartlist_t *included = smartlist_new();
-  char d[DIGEST_LEN];
+  uint8_t d[DIGEST_LEN];
   int i;
   int ok = 1;
   int false_positives = 0;
@@ -585,7 +585,7 @@ test_container_digestset(void)
   test_assert(ok);
   for (i = 0; i < 1000; ++i) {
     crypto_rand(d, DIGEST_LEN);
-    if (digestset_contains(set, d))
+    if (digestset_contains(set, (char*)d))
       ++false_positives;
   }
   test_assert(false_positives < 50); /* Should be far lower. */

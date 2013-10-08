@@ -393,7 +393,7 @@ test_cfmt_create_cells(void *arg)
   /* A valid create cell. */
   memset(&cell, 0, sizeof(cell));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, TAP_ONIONSKIN_CHALLENGE_LEN);
+  crypto_rand(b, TAP_ONIONSKIN_CHALLENGE_LEN);
   cell.command = CELL_CREATE;
   memcpy(cell.payload, b, TAP_ONIONSKIN_CHALLENGE_LEN);
   tt_int_op(0, ==, create_cell_parse(&cc, &cell));
@@ -408,7 +408,7 @@ test_cfmt_create_cells(void *arg)
   /* A valid create_fast cell. */
   memset(&cell, 0, sizeof(cell));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, CREATE_FAST_LEN);
+  crypto_rand(b, CREATE_FAST_LEN);
   cell.command = CELL_CREATE_FAST;
   memcpy(cell.payload, b, CREATE_FAST_LEN);
   tt_int_op(0, ==, create_cell_parse(&cc, &cell));
@@ -423,7 +423,7 @@ test_cfmt_create_cells(void *arg)
   /* A valid create2 cell with a TAP payload */
   memset(&cell, 0, sizeof(cell));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, TAP_ONIONSKIN_CHALLENGE_LEN);
+  crypto_rand(b, TAP_ONIONSKIN_CHALLENGE_LEN);
   cell.command = CELL_CREATE2;
   memcpy(cell.payload, "\x00\x00\x00\xBA", 4); /* TAP, 186 bytes long */
   memcpy(cell.payload+4, b, TAP_ONIONSKIN_CHALLENGE_LEN);
@@ -439,7 +439,7 @@ test_cfmt_create_cells(void *arg)
   /* A valid create2 cell with an ntor payload */
   memset(&cell, 0, sizeof(cell));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, NTOR_ONIONSKIN_LEN);
+  crypto_rand(b, NTOR_ONIONSKIN_LEN);
   cell.command = CELL_CREATE2;
   memcpy(cell.payload, "\x00\x02\x00\x54", 4); /* ntor, 84 bytes long */
   memcpy(cell.payload+4, b, NTOR_ONIONSKIN_LEN);
@@ -459,7 +459,7 @@ test_cfmt_create_cells(void *arg)
   /* A valid create cell with an ntor payload, in legacy format. */
   memset(&cell, 0, sizeof(cell));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, NTOR_ONIONSKIN_LEN);
+  crypto_rand(b, NTOR_ONIONSKIN_LEN);
   cell.command = CELL_CREATE;
   memcpy(cell.payload, "ntorNTORntorNTOR", 16);
   memcpy(cell.payload+16, b, NTOR_ONIONSKIN_LEN);
@@ -519,7 +519,7 @@ test_cfmt_created_cells(void *arg)
   /* A good CREATED cell */
   memset(&cell, 0, sizeof(cell));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, TAP_ONIONSKIN_REPLY_LEN);
+  crypto_rand(b, TAP_ONIONSKIN_REPLY_LEN);
   cell.command = CELL_CREATED;
   memcpy(cell.payload, b, TAP_ONIONSKIN_REPLY_LEN);
   tt_int_op(0, ==, created_cell_parse(&cc, &cell));
@@ -533,7 +533,7 @@ test_cfmt_created_cells(void *arg)
   /* A good CREATED_FAST cell */
   memset(&cell, 0, sizeof(cell));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, CREATED_FAST_LEN);
+  crypto_rand(b, CREATED_FAST_LEN);
   cell.command = CELL_CREATED_FAST;
   memcpy(cell.payload, b, CREATED_FAST_LEN);
   tt_int_op(0, ==, created_cell_parse(&cc, &cell));
@@ -547,7 +547,7 @@ test_cfmt_created_cells(void *arg)
   /* A good CREATED2 cell with short reply */
   memset(&cell, 0, sizeof(cell));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, 64);
+  crypto_rand(b, 64);
   cell.command = CELL_CREATED2;
   memcpy(cell.payload, "\x00\x40", 2);
   memcpy(cell.payload+2, b, 64);
@@ -562,7 +562,7 @@ test_cfmt_created_cells(void *arg)
   /* A good CREATED2 cell with maximal reply */
   memset(&cell, 0, sizeof(cell));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, 496);
+  crypto_rand(b, 496);
   cell.command = CELL_CREATED2;
   memcpy(cell.payload, "\x01\xF0", 2);
   memcpy(cell.payload+2, b, 496);
@@ -577,7 +577,7 @@ test_cfmt_created_cells(void *arg)
   /* Bogus CREATED2 cell: too long! */
   memset(&cell, 0, sizeof(cell));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, 496);
+  crypto_rand(b, 496);
   cell.command = CELL_CREATED2;
   memcpy(cell.payload, "\x01\xF1", 2);
   tt_int_op(-1, ==, created_cell_parse(&cc, &cell));
@@ -608,7 +608,7 @@ test_cfmt_extend_cells(void *arg)
   /* Let's start with a simple EXTEND cell. */
   memset(p, 0, sizeof(p));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, TAP_ONIONSKIN_CHALLENGE_LEN);
+  crypto_rand(b, TAP_ONIONSKIN_CHALLENGE_LEN);
   memcpy(p, "\x12\xf4\x00\x01\x01\x02", 6); /* 18 244 0 1 : 258 */
   memcpy(p+6,b,TAP_ONIONSKIN_CHALLENGE_LEN);
   memcpy(p+6+TAP_ONIONSKIN_CHALLENGE_LEN, "electroencephalogram", 20);
@@ -631,7 +631,7 @@ test_cfmt_extend_cells(void *arg)
   /* Let's do an ntor stuffed in a legacy EXTEND cell */
   memset(p, 0, sizeof(p));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, NTOR_ONIONSKIN_LEN);
+  crypto_rand(b, NTOR_ONIONSKIN_LEN);
   memcpy(p, "\x12\xf4\x00\x01\x01\x02", 6); /* 18 244 0 1 : 258 */
   memcpy(p+6,"ntorNTORntorNTOR", 16);
   memcpy(p+22, b, NTOR_ONIONSKIN_LEN);
@@ -657,7 +657,7 @@ test_cfmt_extend_cells(void *arg)
   memset(&ec, 0xff, sizeof(ec));
   memset(p, 0, sizeof(p));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, NTOR_ONIONSKIN_LEN);
+  crypto_rand(b, NTOR_ONIONSKIN_LEN);
   /* 2 items; one 18.244.0.1:61681 */
   memcpy(p, "\x02\x00\x06\x12\xf4\x00\x01\xf0\xf1", 9);
   /* The other is a digest. */
@@ -685,7 +685,7 @@ test_cfmt_extend_cells(void *arg)
   memset(&ec, 0xff, sizeof(ec));
   memset(p, 0, sizeof(p));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, 99);
+  crypto_rand(b, 99);
   /* 4 items; one 18 244 0 1 61681 */
   memcpy(p, "\x04\x00\x06\x12\xf4\x00\x01\xf0\xf1", 9);
   /* One is a digest. */
@@ -800,7 +800,7 @@ test_cfmt_extend_cells(void *arg)
     memset(p, 0, sizeof(p));
     for (i = 0; i < 10000; ++i) {
       int n = crypto_rand_int(sizeof(p));
-      crypto_rand((char *)p, n);
+      crypto_rand(p, n);
       extend_cell_parse(&ec, RELAY_COMMAND_EXTEND2, p, n);
     }
   }
@@ -827,7 +827,7 @@ test_cfmt_extended_cells(void *arg)
   memset(&ec, 0xff, sizeof(ec));
   memset(p, 0, sizeof(p));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, TAP_ONIONSKIN_REPLY_LEN);
+  crypto_rand(b, TAP_ONIONSKIN_REPLY_LEN);
   memcpy(p,b,TAP_ONIONSKIN_REPLY_LEN);
   tt_int_op(0, ==, extended_cell_parse(&ec, RELAY_COMMAND_EXTENDED, p,
                                        TAP_ONIONSKIN_REPLY_LEN));
@@ -844,7 +844,7 @@ test_cfmt_extended_cells(void *arg)
   memset(&ec, 0xff, sizeof(ec));
   memset(p, 0, sizeof(p));
   memset(b, 0, sizeof(b));
-  crypto_rand((char*)b, 42);
+  crypto_rand(b, 42);
   memcpy(p,"\x00\x2a",2);
   memcpy(p+2,b,42);
   tt_int_op(0, ==, extended_cell_parse(&ec, RELAY_COMMAND_EXTENDED2, p, 2+42));

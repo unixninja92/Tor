@@ -87,10 +87,10 @@ static tor_weak_rng_t stream_choice_rng = TOR_WEAK_RNG_INIT;
 static void
 relay_set_digest(crypto_digest_t *digest, cell_t *cell)
 {
-  char integrity[4];
+  uint8_t integrity[4];
   relay_header_t rh;
 
-  crypto_digest_add_bytes(digest, (char*)cell->payload, CELL_PAYLOAD_SIZE);
+  crypto_digest_add_bytes(digest, cell->payload, CELL_PAYLOAD_SIZE);
   crypto_digest_get_digest(digest, integrity, 4);
 //  log_fn(LOG_DEBUG,"Putting digest of %u %u %u %u into relay cell.",
 //    integrity[0], integrity[1], integrity[2], integrity[3]);
@@ -108,7 +108,7 @@ relay_set_digest(crypto_digest_t *digest, cell_t *cell)
 static int
 relay_digest_matches(crypto_digest_t *digest, cell_t *cell)
 {
-  char received_integrity[4], calculated_integrity[4];
+  uint8_t received_integrity[4], calculated_integrity[4];
   relay_header_t rh;
   crypto_digest_t *backup_digest=NULL;
 
@@ -123,7 +123,7 @@ relay_digest_matches(crypto_digest_t *digest, cell_t *cell)
 //    received_integrity[0], received_integrity[1],
 //    received_integrity[2], received_integrity[3]);
 
-  crypto_digest_add_bytes(digest, (char*) cell->payload, CELL_PAYLOAD_SIZE);
+  crypto_digest_add_bytes(digest, cell->payload, CELL_PAYLOAD_SIZE);
   crypto_digest_get_digest(digest, calculated_integrity, 4);
 
   if (tor_memneq(received_integrity, calculated_integrity, 4)) {
@@ -154,7 +154,7 @@ relay_crypt_one_payload(crypto_cipher_t *cipher, uint8_t *in,
 {
   int r;
   (void)encrypt_mode;
-  r = crypto_cipher_crypt_inplace(cipher, (char*) in, CELL_PAYLOAD_SIZE);
+  r = crypto_cipher_crypt_inplace(cipher, in, CELL_PAYLOAD_SIZE);
 
   if (r) {
     log_warn(LD_BUG,"Error during relay encryption");

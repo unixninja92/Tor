@@ -89,13 +89,14 @@ setup_directory(void)
 {
   static int is_setup = 0;
   int r;
-  char rnd[256], rnd32[256];
+  uint8_t rnd[256];
+  char rnd32[256];
   if (is_setup) return;
 
 /* Due to base32 limitation needs to be a multiple of 5. */
 #define RAND_PATH_BYTES 5
   crypto_rand(rnd, RAND_PATH_BYTES);
-  base32_encode(rnd32, sizeof(rnd32), rnd, RAND_PATH_BYTES);
+  base32_encode(rnd32, sizeof(rnd32), (char*)rnd, RAND_PATH_BYTES);
 
 #ifdef _WIN32
   {
@@ -223,11 +224,11 @@ test_onion_handshake(void)
 {
   /* client-side */
   crypto_dh_t *c_dh = NULL;
-  char c_buf[TAP_ONIONSKIN_CHALLENGE_LEN];
-  char c_keys[40];
+  uint8_t c_buf[TAP_ONIONSKIN_CHALLENGE_LEN];
+  uint8_t c_keys[40];
   /* server-side */
-  char s_buf[TAP_ONIONSKIN_REPLY_LEN];
-  char s_keys[40];
+  uint8_t s_buf[TAP_ONIONSKIN_REPLY_LEN];
+  uint8_t s_keys[40];
   int i;
   /* shared */
   crypto_pk_t *pk = NULL, *pk2 = NULL;
@@ -274,15 +275,15 @@ test_onion_handshake(void)
 static void
 test_bad_onion_handshake(void *arg)
 {
-  char junk_buf[TAP_ONIONSKIN_CHALLENGE_LEN];
-  char junk_buf2[TAP_ONIONSKIN_CHALLENGE_LEN];
+  uint8_t junk_buf[TAP_ONIONSKIN_CHALLENGE_LEN];
+  uint8_t junk_buf2[TAP_ONIONSKIN_CHALLENGE_LEN];
   /* client-side */
   crypto_dh_t *c_dh = NULL;
-  char c_buf[TAP_ONIONSKIN_CHALLENGE_LEN];
-  char c_keys[40];
+  uint8_t c_buf[TAP_ONIONSKIN_CHALLENGE_LEN];
+  uint8_t c_keys[40];
   /* server-side */
-  char s_buf[TAP_ONIONSKIN_REPLY_LEN];
-  char s_keys[40];
+  uint8_t s_buf[TAP_ONIONSKIN_REPLY_LEN];
+  uint8_t s_keys[40];
   /* shared */
   crypto_pk_t *pk = NULL, *pk2 = NULL;
 
@@ -930,11 +931,11 @@ static void
 test_rend_fns(void)
 {
   rend_service_descriptor_t *generated = NULL, *parsed = NULL;
-  char service_id[DIGEST_LEN];
+  uint8_t service_id[DIGEST_LEN];
   char service_id_base32[REND_SERVICE_ID_LEN_BASE32+1];
   const char *next_desc;
   smartlist_t *descs = smartlist_new();
-  char computed_desc_id[DIGEST_LEN];
+  uint8_t computed_desc_id[DIGEST_LEN];
   char parsed_desc_id[DIGEST_LEN];
   crypto_pk_t *pk1 = NULL, *pk2 = NULL;
   time_t now;
@@ -967,7 +968,7 @@ test_rend_fns(void)
   generated->pk = crypto_pk_dup_key(pk1);
   crypto_pk_get_digest(generated->pk, service_id);
   base32_encode(service_id_base32, REND_SERVICE_ID_LEN_BASE32+1,
-                service_id, REND_SERVICE_ID_LEN);
+                (char*)service_id, REND_SERVICE_ID_LEN);
   now = time(NULL);
   generated->timestamp = now;
   generated->version = 2;
@@ -980,7 +981,7 @@ test_rend_fns(void)
     intro->extend_info = tor_malloc_zero(sizeof(extend_info_t));
     intro->extend_info->onion_key = okey;
     crypto_pk_get_digest(intro->extend_info->onion_key,
-                         intro->extend_info->identity_digest);
+                         (uint8_t*)intro->extend_info->identity_digest);
     //crypto_rand(info->identity_digest, DIGEST_LEN); /* Would this work? */
     intro->extend_info->nickname[0] = '$';
     base16_encode(intro->extend_info->nickname + 1,

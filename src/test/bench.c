@@ -84,7 +84,7 @@ static void
 bench_aes(void)
 {
   int len, i;
-  char *b1, *b2;
+  uint8_t *b1, *b2;
   crypto_cipher_t *c;
   uint64_t start, end;
   const int bytes_per_iter = (1<<24);
@@ -115,8 +115,8 @@ bench_onion_TAP(void)
   int i;
   crypto_pk_t *key, *key2;
   uint64_t start, end;
-  char os[TAP_ONIONSKIN_CHALLENGE_LEN];
-  char or[TAP_ONIONSKIN_REPLY_LEN];
+  uint8_t os[TAP_ONIONSKIN_CHALLENGE_LEN];
+  uint8_t or[TAP_ONIONSKIN_REPLY_LEN];
   crypto_dh_t *dh_out;
 
   key = crypto_pk_new();
@@ -138,7 +138,7 @@ bench_onion_TAP(void)
   onion_skin_TAP_create(key, &dh_out, os);
   start = perftime();
   for (i = 0; i < iters; ++i) {
-    char key_out[CPATH_KEY_MATERIAL_LEN];
+    uint8_t key_out[CPATH_KEY_MATERIAL_LEN];
     onion_skin_TAP_server_handshake(os, key, NULL, or,
                                     key_out, sizeof(key_out));
   }
@@ -148,7 +148,7 @@ bench_onion_TAP(void)
 
   start = perftime();
   for (i = 0; i < iters; ++i) {
-    char key_out[CPATH_KEY_MATERIAL_LEN];
+    uint8_t key_out[CPATH_KEY_MATERIAL_LEN];
     onion_skin_TAP_server_handshake(os, key2, key, or,
                                     key_out, sizeof(key_out));
   }
@@ -159,7 +159,7 @@ bench_onion_TAP(void)
   start = perftime();
   for (i = 0; i < iters; ++i) {
     crypto_dh_t *dh;
-    char key_out[CPATH_KEY_MATERIAL_LEN];
+    uint8_t key_out[CPATH_KEY_MATERIAL_LEN];
     int s;
     dh = crypto_dh_dup(dh_out);
     s = onion_skin_TAP_client_handshake(dh, or, key_out, sizeof(key_out));
@@ -241,7 +241,7 @@ bench_cell_aes(void)
   const int len = 509;
   const int iters = (1<<16);
   const int max_misalign = 15;
-  char *b = tor_malloc(len+max_misalign);
+  uint8_t *b = tor_malloc(len+max_misalign);
   crypto_cipher_t *c;
   int i, misalign;
 
@@ -272,7 +272,7 @@ bench_dmap(void)
   int iters = 8192;
   const int elts = 4000;
   const int fpostests = 100000;
-  char d[20];
+  uint8_t d[20];
   int i,n=0, fp = 0;
   digestmap_t *dm = digestmap_new();
   digestset_t *ds = digestset_new(elts);
@@ -324,7 +324,7 @@ bench_dmap(void)
 
   for (i = 0; i < fpostests; ++i) {
     crypto_rand(d, 20);
-    if (digestset_contains(ds, d)) ++fp;
+    if (digestset_contains(ds, (char*)d)) ++fp;
   }
   printf("False positive rate on digestset: %.2f%%\n",
          (fp/(double)fpostests)*100);
@@ -349,7 +349,7 @@ bench_cell_ops(void)
   int outbound;
   uint64_t start, end;
 
-  crypto_rand((char*)cell->payload, sizeof(cell->payload));
+  crypto_rand(cell->payload, sizeof(cell->payload));
 
   /* Mock-up or_circuit_t */
   or_circ->base_.magic = OR_CIRCUIT_MAGIC;
@@ -396,8 +396,8 @@ bench_dh(void)
   reset_perftime();
   start = perftime();
   for (i = 0; i < iters; ++i) {
-    char dh_pubkey_a[DH_BYTES], dh_pubkey_b[DH_BYTES];
-    char secret_a[DH_BYTES], secret_b[DH_BYTES];
+    uint8_t dh_pubkey_a[DH_BYTES], dh_pubkey_b[DH_BYTES];
+    uint8_t secret_a[DH_BYTES], secret_b[DH_BYTES];
     ssize_t slen_a, slen_b;
     crypto_dh_t *dh_a = crypto_dh_new(DH_TYPE_TLS);
     crypto_dh_t *dh_b = crypto_dh_new(DH_TYPE_TLS);

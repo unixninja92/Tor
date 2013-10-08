@@ -62,7 +62,7 @@ rend_client_send_establish_rendezvous(origin_circuit_t *circ)
   tor_assert(circ->rend_data);
   log_info(LD_REND, "Sending an ESTABLISH_RENDEZVOUS cell");
 
-  if (crypto_rand(circ->rend_data->rend_cookie, REND_COOKIE_LEN) < 0) {
+  if (crypto_rand((uint8_t*)circ->rend_data->rend_cookie, REND_COOKIE_LEN) < 0) {
     log_warn(LD_BUG, "Internal error: Couldn't produce random cookie.");
     circuit_mark_for_close(TO_CIRCUIT(circ), END_CIRC_REASON_INTERNAL);
     return -1;
@@ -147,7 +147,7 @@ rend_client_send_introduction(origin_circuit_t *introcirc,
 {
   size_t payload_len;
   int r, v3_shift = 0;
-  char payload[RELAY_PAYLOAD_SIZE];
+  uint8_t payload[RELAY_PAYLOAD_SIZE];
   char tmp[RELAY_PAYLOAD_SIZE];
   rend_cache_entry_t *entry;
   crypt_path_t *cpath;
@@ -273,7 +273,7 @@ rend_client_send_introduction(origin_circuit_t *introcirc,
     set_uint16(tmp+v3_shift+5, htons(extend_info->port));
     memcpy(tmp+v3_shift+7, extend_info->identity_digest, DIGEST_LEN);
     klen = crypto_pk_asn1_encode(extend_info->onion_key,
-                                 tmp+v3_shift+7+DIGEST_LEN+2,
+                                 (uint8_t*)tmp+v3_shift+7+DIGEST_LEN+2,
                                  sizeof(tmp)-(v3_shift+7+DIGEST_LEN+2));
     set_uint16(tmp+v3_shift+7+DIGEST_LEN, htons(klen));
     memcpy(tmp+v3_shift+7+DIGEST_LEN+2+klen, rendcirc->rend_data->rend_cookie,
@@ -288,7 +288,7 @@ rend_client_send_introduction(origin_circuit_t *introcirc,
     dh_offset = MAX_NICKNAME_LEN+1+REND_COOKIE_LEN;
   }
 
-  if (crypto_dh_get_public(cpath->rend_dh_handshake_state, tmp+dh_offset,
+  if (crypto_dh_get_public(cpath->rend_dh_handshake_state, (uint8_t*)tmp+dh_offset,
                            DH_KEY_LEN)<0) {
     log_warn(LD_BUG, "Internal error: couldn't extract g^x.");
     status = -2;
@@ -300,7 +300,7 @@ rend_client_send_introduction(origin_circuit_t *introcirc,
    * to avoid buffer overflows? */
   r = crypto_pk_public_hybrid_encrypt(intro_key, payload+DIGEST_LEN,
                                       sizeof(payload)-DIGEST_LEN,
-                                      tmp,
+                                      (uint8_t*)tmp,
                                       (int)(dh_offset+DH_KEY_LEN),
                                       PK_PKCS1_OAEP_PADDING, 0);
   if (r<0) {
@@ -321,7 +321,7 @@ rend_client_send_introduction(origin_circuit_t *introcirc,
   log_info(LD_REND, "Sending an INTRODUCE1 cell");
   if (relay_send_command_from_edge(0, TO_CIRCUIT(introcirc),
                                    RELAY_COMMAND_INTRODUCE1,
-                                   payload, payload_len,
+                                   (char*)payload, payload_len,
                                    introcirc->cpath->prev)<0) {
     /* introcirc is already marked for close. leave rendcirc alone. */
     log_warn(LD_BUG, "Couldn't send INTRODUCE1 cell");
@@ -702,7 +702,7 @@ directory_get_from_hs_dir(const char *desc_id, const rend_data_t *rend_query)
 void
 rend_client_refetch_v2_renddesc(const rend_data_t *rend_query)
 {
-  char descriptor_id[DIGEST_LEN];
+  uint8_t descriptor_id[DIGEST_LEN];
   int replicas_left_to_try[REND_NUMBER_OF_NON_CONSECUTIVE_REPLICAS];
   int i, tries_left;
   rend_cache_entry_t *e = NULL;
@@ -733,8 +733,8 @@ rend_client_refetch_v2_renddesc(const rend_data_t *rend_query)
     replicas_left_to_try[rand] = replicas_left_to_try[--tries_left];
 
     if (rend_compute_v2_desc_id(descriptor_id, rend_query->onion_address,
-                                rend_query->auth_type == REND_STEALTH_AUTH ?
-                                    rend_query->descriptor_cookie : NULL,
+                                (uint8_t*)(rend_query->auth_type == REND_STEALTH_AUTH ?
+                                    rend_query->descriptor_cookie : NULL),
                                 time(NULL), chosen_replica) < 0) {
       log_warn(LD_REND, "Internal error: Computing v2 rendezvous "
                         "descriptor ID did not succeed.");
@@ -747,7 +747,7 @@ rend_client_refetch_v2_renddesc(const rend_data_t *rend_query)
        */
       goto done;
     }
-    if (directory_get_from_hs_dir(descriptor_id, rend_query) != 0)
+    if (directory_get_from_hs_dir((char*)descriptor_id, rend_query) != 0)
       goto done; /* either success or failure, but we're done */
   }
   /* If we come here, there are no hidden service directories left. */
@@ -942,7 +942,7 @@ rend_client_receive_rendezvous(origin_circuit_t *circ, const uint8_t *request,
                                size_t request_len)
 {
   crypt_path_t *hop;
-  char keys[DIGEST_LEN+CPATH_KEY_MATERIAL_LEN];
+  uint8_t keys[DIGEST_LEN+CPATH_KEY_MATERIAL_LEN];
 
   if ((circ->base_.purpose != CIRCUIT_PURPOSE_C_REND_READY &&
        circ->base_.purpose != CIRCUIT_PURPOSE_C_REND_READY_INTRO_ACKED)
@@ -967,7 +967,7 @@ rend_client_receive_rendezvous(origin_circuit_t *circ, const uint8_t *request,
   hop = circ->build_state->pending_final_cpath;
   tor_assert(hop->rend_dh_handshake_state);
   if (crypto_dh_compute_secret(LOG_PROTOCOL_WARN,
-                               hop->rend_dh_handshake_state, (char*)request,
+                               hop->rend_dh_handshake_state, request,
                                DH_KEY_LEN,
                                keys, DIGEST_LEN+CPATH_KEY_MATERIAL_LEN)<0) {
     log_warn(LD_GENERAL, "Couldn't complete DH handshake.");

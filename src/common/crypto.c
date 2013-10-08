@@ -1173,7 +1173,7 @@ crypto_pk_private_hybrid_decrypt(crypto_pk_t *env,
  * Return -1 on error, or the number of characters used on success.
  */
 int
-crypto_pk_asn1_encode(crypto_pk_t *pk, char *dest, size_t dest_len)
+crypto_pk_asn1_encode(crypto_pk_t *pk, uint8_t *dest, size_t dest_len)
 {
   int len;
   unsigned char *buf = NULL;
@@ -1198,7 +1198,7 @@ crypto_pk_asn1_encode(crypto_pk_t *pk, char *dest, size_t dest_len)
  * success and NULL on failure.
  */
 crypto_pk_t *
-crypto_pk_asn1_decode(const char *str, size_t len)
+crypto_pk_asn1_decode(const uint8_t *str, size_t len)
 {
   RSA *rsa;
   unsigned char *buf;

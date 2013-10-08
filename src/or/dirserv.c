@@ -1146,7 +1146,7 @@ dirserv_dump_directory_to_string(char **dir_out,
   char *cp;
   char *identity_pkey; /* Identity key, DER64-encoded. */
   char *recommended_versions;
-  char digest[DIGEST_LEN];
+  uint8_t digest[DIGEST_LEN];
   char published[ISO_TIME_LEN+1];
   char *buf = NULL;
   size_t buf_len;
@@ -1199,7 +1199,7 @@ dirserv_dump_directory_to_string(char **dir_out,
   if (strlcat(buf, "\n", buf_len) >= buf_len)
     goto truncated;
 
-  if (router_get_dir_hash(buf,digest)) {
+  if (router_get_dir_hash(buf, digest)) {
     log_warn(LD_BUG,"couldn't compute digest");
     tor_free(buf);
     return -1;
@@ -1661,7 +1661,7 @@ static cached_dir_t *
 generate_runningrouters(void)
 {
   char *s=NULL;
-  char digest[DIGEST_LEN];
+  uint8_t digest[DIGEST_LEN];
   char published[ISO_TIME_LEN+1];
   size_t len;
   crypto_pk_t *private_key = get_server_identity_key();
@@ -1686,7 +1686,7 @@ generate_runningrouters(void)
                published, "", identity_pkey,
                get_options()->Nickname);
   tor_free(identity_pkey);
-  if (router_get_runningrouters_hash(s,digest)) {
+  if (router_get_runningrouters_hash(s, digest)) {
     log_warn(LD_BUG,"couldn't compute digest");
     goto err;
   }
@@ -3302,7 +3302,7 @@ generate_v2_networkstatus_opinion(void)
   note_crypto_pk_op(SIGN_DIR);
   {
     char *sig;
-    if (!(sig = router_get_dirobj_signature((const char*)digest,DIGEST_LEN,
+    if (!(sig = router_get_dirobj_signature(digest,DIGEST_LEN,
                                             private_key))) {
       log_warn(LD_BUG, "Unable to sign router status.");
       goto done;

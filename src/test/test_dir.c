@@ -77,7 +77,7 @@ test_dir_formats(void)
   char *buf = NULL;
   char buf2[8192];
   char platform[256];
-  char fingerprint[FINGERPRINT_LEN+1];
+  uint8_t fingerprint[FINGERPRINT_LEN+1];
   char *pk1_str = NULL, *pk2_str = NULL, *cp;
   size_t pk1_str_len, pk2_str_len;
   routerinfo_t *r1=NULL, *r2=NULL;
@@ -162,7 +162,7 @@ test_dir_formats(void)
           "published 1970-01-01 00:00:00\n"
           "fingerprint ", sizeof(buf2));
   test_assert(!crypto_pk_get_fingerprint(pk2, fingerprint, 1));
-  strlcat(buf2, fingerprint, sizeof(buf2));
+  strlcat(buf2, (char*)fingerprint, sizeof(buf2));
   strlcat(buf2, "\nuptime 0\n"
   /* XXX the "0" above is hard-coded, but even if we made it reflect
    * uptime, that still wouldn't make it right, because the two
@@ -206,7 +206,7 @@ test_dir_formats(void)
           "published 1970-01-01 00:00:05\n"
           "fingerprint ", sizeof(buf2));
   test_assert(!crypto_pk_get_fingerprint(pk1, fingerprint, 1));
-  strlcat(buf2, fingerprint, sizeof(buf2));
+  strlcat(buf2, (char*)fingerprint, sizeof(buf2));
   strlcat(buf2, "\nuptime 0\n"
           "bandwidth 3000 3000 3000\n", sizeof(buf2));
   strlcat(buf2, "onion-key\n", sizeof(buf2));
@@ -1295,7 +1295,7 @@ test_a_networkstatus(
   voter->dir_port = 80;
   voter->or_port = 9000;
   voter->contact = tor_strdup("voter@example.com");
-  crypto_pk_get_digest(cert1->identity_key, voter->identity_digest);
+  crypto_pk_get_digest(cert1->identity_key, (uint8_t *)voter->identity_digest);
   smartlist_add(vote->voters, voter);
   vote->cert = authority_cert_dup(cert1);
   vote->net_params = smartlist_new();
@@ -1373,7 +1373,7 @@ test_a_networkstatus(
   voter->nickname = tor_strdup("Voter2");
   voter->address = tor_strdup("2.3.4.5");
   voter->addr = 0x02030405;
-  crypto_pk_get_digest(cert2->identity_key, voter->identity_digest);
+  crypto_pk_get_digest(cert2->identity_key, (uint8_t *)voter->identity_digest);
   smartlist_add(vote->known_flags, tor_strdup("MadeOfCheese"));
   smartlist_add(vote->known_flags, tor_strdup("MadeOfTin"));
   smartlist_sort_strings(vote->known_flags);
@@ -1418,7 +1418,7 @@ test_a_networkstatus(
   voter->nickname = tor_strdup("Voter3");
   voter->address = tor_strdup("3.4.5.6");
   voter->addr = 0x03040506;
-  crypto_pk_get_digest(cert3->identity_key, voter->identity_digest);
+  crypto_pk_get_digest(cert3->identity_key, (uint8_t *)voter->identity_digest);
   /* This one has a legacy id. */
   memset(voter->legacy_id_digest, (int)'A', DIGEST_LEN);
 

@@ -80,7 +80,7 @@ replaycache_add_and_test_internal(
   }
 
   /* compute digest */
-  crypto_digest(digest, (const char *)data, len);
+  crypto_digest((uint8_t*)digest, data, len);
 
   /* check map */
   access_time = digestmap_get(r->digests_seen, digest);

@@ -54,13 +54,13 @@ int rend_encode_v2_descriptors(smartlist_t *descs_out,
                                uint8_t period, rend_auth_type_t auth_type,
                                crypto_pk_t *client_key,
                                smartlist_t *client_cookies);
-int rend_compute_v2_desc_id(char *desc_id_out, const char *service_id,
-                            const char *descriptor_cookie,
+int rend_compute_v2_desc_id(uint8_t *desc_id_out, const char *service_id,
+                            const uint8_t *descriptor_cookie,
                             time_t now, uint8_t replica);
 int rend_id_is_in_interval(const char *a, const char *b, const char *c);
-void rend_get_descriptor_id_bytes(char *descriptor_id_out,
-                                  const char *service_id,
-                                  const char *secret_id_part);
+void rend_get_descriptor_id_bytes(uint8_t *descriptor_id_out,
+                                  const uint8_t *service_id,
+                                  const uint8_t *secret_id_part);
 
 #endif
 

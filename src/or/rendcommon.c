@@ -60,9 +60,9 @@ rend_service_descriptor_free(rend_service_descriptor_t *desc)
  * <b>DIGEST_LEN</b>, and write it to <b>descriptor_id_out</b> of length
  * <b>DIGEST_LEN</b>. */
 void
-rend_get_descriptor_id_bytes(char *descriptor_id_out,
-                             const char *service_id,
-                             const char *secret_id_part)
+rend_get_descriptor_id_bytes(uint8_t *descriptor_id_out,
+                             const uint8_t *service_id,
+                             const uint8_t *secret_id_part)
 {
   crypto_digest_t *digest = crypto_digest_new();
   crypto_digest_add_bytes(digest, service_id, REND_SERVICE_ID_LEN);
@@ -77,17 +77,17 @@ rend_get_descriptor_id_bytes(char *descriptor_id_out,
  * descriptor_cookie shall be used, and <b>replica</b>, and write it to
  * <b>secret_id_part</b> of length DIGEST_LEN. */
 static void
-get_secret_id_part_bytes(char *secret_id_part, uint32_t time_period,
-                         const char *descriptor_cookie, uint8_t replica)
+get_secret_id_part_bytes(uint8_t *secret_id_part, uint32_t time_period,
+                         const uint8_t *descriptor_cookie, uint8_t replica)
 {
   crypto_digest_t *digest = crypto_digest_new();
   time_period = htonl(time_period);
-  crypto_digest_add_bytes(digest, (char*)&time_period, sizeof(uint32_t));
+  crypto_digest_add_bytes(digest, (uint8_t*)&time_period, sizeof(uint32_t));
   if (descriptor_cookie) {
     crypto_digest_add_bytes(digest, descriptor_cookie,
                             REND_DESC_COOKIE_LEN);
   }
-  crypto_digest_add_bytes(digest, (const char *)&replica, REND_REPLICA_LEN);
+  crypto_digest_add_bytes(digest, &replica, REND_REPLICA_LEN);
   crypto_digest_get_digest(digest, secret_id_part, DIGEST_LEN);
   crypto_digest_free(digest);
 }
@@ -126,12 +126,12 @@ get_seconds_valid(time_t now, const char *service_id)
  * <b>replica</b>. <b>desc_id</b> needs to have <b>DIGEST_LEN</b> bytes
  * free. Return 0 for success, -1 otherwise. */
 int
-rend_compute_v2_desc_id(char *desc_id_out, const char *service_id,
-                        const char *descriptor_cookie, time_t now,
+rend_compute_v2_desc_id(uint8_t *desc_id_out, const char *service_id,
+                        const uint8_t *descriptor_cookie, time_t now,
                         uint8_t replica)
 {
-  char service_id_binary[REND_SERVICE_ID_LEN];
-  char secret_id_part[DIGEST_LEN];
+  uint8_t service_id_binary[REND_SERVICE_ID_LEN];
+  uint8_t secret_id_part[DIGEST_LEN];
   uint32_t time_period;
   if (!service_id ||
       strlen(service_id) != REND_SERVICE_ID_LEN_BASE32) {
@@ -146,15 +146,15 @@ rend_compute_v2_desc_id(char *desc_id_out, const char *service_id,
     return -1;
   }
   /* Convert service ID to binary. */
-  if (base32_decode(service_id_binary, REND_SERVICE_ID_LEN,
-                    service_id, REND_SERVICE_ID_LEN_BASE32) < 0) {
+  if (base32_decode((char*)service_id_binary, REND_SERVICE_ID_LEN,
+                    (char*)service_id, REND_SERVICE_ID_LEN_BASE32) < 0) {
     log_warn(LD_REND, "Could not compute v2 descriptor ID: "
                       "Illegal characters in service ID: %s",
              safe_str_client(service_id));
     return -1;
   }
   /* Calculate current time-period. */
-  time_period = get_time_period(now, 0, service_id_binary);
+  time_period = get_time_period(now, 0, (char*)service_id_binary);
   /* Calculate secret-id-part = h(time-period + replica). */
   get_secret_id_part_bytes(secret_id_part, time_period, descriptor_cookie,
                            replica);
@@ -252,15 +252,14 @@ rend_encode_v2_intro_points(char **encoded, rend_service_descriptor_t *desc)
  * result to a newly allocated string pointed to by <b>encrypted_out</b> of
  * length <b>encrypted_len_out</b>. Return 0 for success, -1 otherwise. */
 static int
-rend_encrypt_v2_intro_points_basic(char **encrypted_out,
+rend_encrypt_v2_intro_points_basic(uint8_t **encrypted_out,
                                    size_t *encrypted_len_out,
                                    const char *encoded,
                                    smartlist_t *client_cookies)
 {
   int r = -1, i, pos, enclen, client_blocks;
   size_t len, client_entries_len;
-  char *enc = NULL, iv[CIPHER_IV_LEN], *client_part = NULL,
-       session_key[CIPHER_KEY_LEN];
+  uint8_t *enc = NULL, iv[CIPHER_IV_LEN], *client_part = NULL, session_key[CIPHER_KEY_LEN];
   smartlist_t *encrypted_session_keys = NULL;
   crypto_digest_t *digest;
   crypto_cipher_t *cipher;
@@ -292,7 +291,7 @@ rend_encrypt_v2_intro_points_basic(char **encrypted_out,
   /* Encrypt with random session key. */
   enclen = crypto_cipher_encrypt_with_iv(session_key,
       enc + 2 + client_entries_len,
-      CIPHER_IV_LEN + strlen(encoded), encoded, strlen(encoded));
+      CIPHER_IV_LEN + strlen(encoded), (uint8_t*)encoded, strlen(encoded));
 
   if (enclen < 0) {
     log_warn(LD_REND, "Could not encrypt introduction point string.");
@@ -303,7 +302,7 @@ rend_encrypt_v2_intro_points_basic(char **encrypted_out,
   /* Encrypt session key for cookies, determine client IDs, and put both
    * in a smartlist. */
   encrypted_session_keys = smartlist_new();
-  SMARTLIST_FOREACH_BEGIN(client_cookies, const char *, cookie) {
+  SMARTLIST_FOREACH_BEGIN(client_cookies, const uint8_t *, cookie) {
     client_part = tor_malloc_zero(REND_BASIC_AUTH_CLIENT_ENTRY_LEN);
     /* Encrypt session key. */
     cipher = crypto_cipher_new(cookie);
@@ -367,13 +366,13 @@ rend_encrypt_v2_intro_points_basic(char **encrypted_out,
  * pointed to by <b>encrypted_out</b> of length <b>encrypted_len_out</b>.
  * Return 0 for success, -1 otherwise. */
 static int
-rend_encrypt_v2_intro_points_stealth(char **encrypted_out,
+rend_encrypt_v2_intro_points_stealth(uint8_t **encrypted_out,
                                      size_t *encrypted_len_out,
                                      const char *encoded,
-                                     const char *descriptor_cookie)
+                                     const uint8_t *descriptor_cookie)
 {
   int r = -1, enclen;
-  char *enc;
+  uint8_t *enc;
   tor_assert(encoded);
   tor_assert(descriptor_cookie);
 
@@ -382,7 +381,7 @@ rend_encrypt_v2_intro_points_stealth(char **encrypted_out,
   enclen = crypto_cipher_encrypt_with_iv(descriptor_cookie,
                                          enc + 1,
                                          CIPHER_IV_LEN+strlen(encoded),
-                                         encoded, strlen(encoded));
+                                         (uint8_t*)encoded, strlen(encoded));
   if (enclen < 0) {
     log_warn(LD_REND, "Could not encrypt introduction point string.");
     goto done;
@@ -460,10 +459,10 @@ rend_encode_v2_descriptors(smartlist_t *descs_out,
                            crypto_pk_t *client_key,
                            smartlist_t *client_cookies)
 {
-  char service_id[DIGEST_LEN];
+  uint8_t service_id[DIGEST_LEN];
   uint32_t time_period;
-  char *ipos_base64 = NULL, *ipos = NULL, *ipos_encrypted = NULL,
-       *descriptor_cookie = NULL;
+  char *ipos_base64 = NULL, *ipos = NULL;
+  uint8_t *ipos_encrypted = NULL, *descriptor_cookie = NULL;
   size_t ipos_len = 0, ipos_encrypted_len = 0;
   int k;
   uint32_t seconds_valid;
@@ -481,10 +480,10 @@ rend_encode_v2_descriptors(smartlist_t *descs_out,
   /* Obtain service_id from public key. */
   crypto_pk_get_digest(service_key, service_id);
   /* Calculate current time-period. */
-  time_period = get_time_period(now, period, service_id);
+  time_period = get_time_period(now, period, (char*)service_id);
   /* Determine how many seconds the descriptor will be valid. */
   seconds_valid = period * REND_TIME_PERIOD_V2_DESC_VALIDITY +
-                  get_seconds_valid(now, service_id);
+                  get_seconds_valid(now, (char*)service_id);
   /* Assemble, possibly encrypt, and encode introduction points. */
   if (smartlist_len(desc->intro_nodes) > 0) {
     if (rend_encode_v2_intro_points(&ipos, desc) < 0) {
@@ -505,7 +504,7 @@ rend_encode_v2_descriptors(smartlist_t *descs_out,
           return -1;
         }
         tor_free(ipos);
-        ipos = ipos_encrypted;
+        ipos = (char*)ipos_encrypted;
         ipos_len = ipos_encrypted_len;
         break;
       case REND_STEALTH_AUTH:
@@ -518,7 +517,7 @@ rend_encode_v2_descriptors(smartlist_t *descs_out,
           return -1;
         }
         tor_free(ipos);
-        ipos = ipos_encrypted;
+        ipos = (char*)ipos_encrypted;
         ipos_len = ipos_encrypted_len;
         break;
       default:
@@ -540,7 +539,7 @@ rend_encode_v2_descriptors(smartlist_t *descs_out,
   }
   /* Encode REND_NUMBER_OF_NON_CONSECUTIVE_REPLICAS descriptors. */
   for (k = 0; k < REND_NUMBER_OF_NON_CONSECUTIVE_REPLICAS; k++) {
-    char secret_id_part[DIGEST_LEN];
+    uint8_t secret_id_part[DIGEST_LEN];
     char secret_id_part_base32[REND_SECRET_ID_PART_LEN_BASE32 + 1];
     char desc_id_base32[REND_DESC_ID_V2_LEN_BASE32 + 1];
     char *permanent_key = NULL;
@@ -553,16 +552,16 @@ rend_encode_v2_descriptors(smartlist_t *descs_out,
     char *desc_str = NULL;
     int result = 0;
     size_t written = 0;
-    char desc_digest[DIGEST_LEN];
+    uint8_t desc_digest[DIGEST_LEN];
     rend_encoded_v2_service_descriptor_t *enc =
       tor_malloc_zero(sizeof(rend_encoded_v2_service_descriptor_t));
     /* Calculate secret-id-part = h(time-period + cookie + replica). */
     get_secret_id_part_bytes(secret_id_part, time_period, descriptor_cookie,
                              k);
     base32_encode(secret_id_part_base32, sizeof(secret_id_part_base32),
-                  secret_id_part, DIGEST_LEN);
+                  (char*)secret_id_part, DIGEST_LEN);
     /* Calculate descriptor ID. */
-    rend_get_descriptor_id_bytes(enc->desc_id, service_id, secret_id_part);
+    rend_get_descriptor_id_bytes((uint8_t *)enc->desc_id, service_id, secret_id_part);
     base32_encode(desc_id_base32, sizeof(desc_id_base32),
                   enc->desc_id, DIGEST_LEN);
     /* PEM-encode the public key */
@@ -627,7 +626,7 @@ rend_encode_v2_descriptors(smartlist_t *descs_out,
     /* Add signature. */
     strlcpy(desc_str + written, "signature\n", desc_len - written);
     written += strlen(desc_str + written);
-    if (crypto_digest(desc_digest, desc_str, written) < 0) {
+    if (crypto_digest(desc_digest, (uint8_t*)desc_str, written) < 0) {
       log_warn(LD_BUG, "could not create digest.");
       rend_encoded_v2_service_descriptor_free(enc);
       goto err;
@@ -694,7 +693,7 @@ rend_parse_service_descriptor(const char *str, size_t len)
   asn1len = ntohs(get_uint16(cp));
   cp += 2;
   if ((size_t)(end-cp) < asn1len) goto truncated;
-  result->pk = crypto_pk_asn1_decode(cp, asn1len);
+  result->pk = crypto_pk_asn1_decode((uint8_t*)cp, asn1len);
   if (!result->pk) goto truncated;
   cp += asn1len;
   if (end-cp < 4) goto truncated;
@@ -730,8 +729,8 @@ rend_parse_service_descriptor(const char *str, size_t len)
   }
   note_crypto_pk_op(REND_CLIENT);
   if (crypto_pk_public_checksig_digest(result->pk,
-                                       (char*)str,cp-str, /* data */
-                                       (char*)cp,end-cp  /* signature*/
+                                       (uint8_t*)str,cp-str, /* data */
+                                       (uint8_t*)cp,end-cp  /* signature*/
                                        )<0) {
     log_warn(LD_PROTOCOL, "Bad signature on service descriptor.");
     goto error;
@@ -752,11 +751,11 @@ rend_parse_service_descriptor(const char *str, size_t len)
 int
 rend_get_service_id(crypto_pk_t *pk, char *out)
 {
-  char buf[DIGEST_LEN];
+  uint8_t buf[DIGEST_LEN];
   tor_assert(pk);
   if (crypto_pk_get_digest(pk, buf) < 0)
     return -1;
-  base32_encode(out, REND_SERVICE_ID_LEN_BASE32+1, buf, REND_SERVICE_ID_LEN);
+  base32_encode(out, REND_SERVICE_ID_LEN_BASE32+1, (char*)buf, REND_SERVICE_ID_LEN);
   return 0;
 }
 
@@ -1268,7 +1267,7 @@ rend_cache_store_v2_desc_as_client(const char *desc,
    * which probably would not improve, but worsen code readability. -KL */
   rend_service_descriptor_t *parsed = NULL;
   char desc_id[DIGEST_LEN];
-  char *intro_content = NULL;
+  uint8_t *intro_content = NULL;
   size_t intro_size;
   size_t encoded_size;
   const char *next_desc;
@@ -1280,7 +1279,7 @@ rend_cache_store_v2_desc_as_client(const char *desc,
   tor_assert(rend_cache);
   tor_assert(desc);
   /* Parse the descriptor. */
-  if (rend_parse_v2_service_descriptor(&parsed, desc_id, &intro_content,
+  if (rend_parse_v2_service_descriptor(&parsed, desc_id, (char**)&intro_content,
                                        &intro_size, &encoded_size,
                                        &next_desc, desc) < 0) {
     log_warn(LD_REND, "Could not parse descriptor.");
@@ -1306,11 +1305,11 @@ rend_cache_store_v2_desc_as_client(const char *desc,
     if (rend_query->auth_type != REND_NO_AUTH &&
         !tor_mem_is_zero(rend_query->descriptor_cookie,
                          sizeof(rend_query->descriptor_cookie))) {
-      char *ipos_decrypted = NULL;
+      uint8_t *ipos_decrypted = NULL;
       size_t ipos_decrypted_size;
       if (rend_decrypt_introduction_points(&ipos_decrypted,
                                            &ipos_decrypted_size,
-                                           rend_query->descriptor_cookie,
+                                           (uint8_t*)rend_query->descriptor_cookie,
                                            intro_content,
                                            intro_size) < 0) {
         log_warn(LD_REND, "Failed to decrypt introduction points. We are "
@@ -1323,7 +1322,7 @@ rend_cache_store_v2_desc_as_client(const char *desc,
         intro_size = ipos_decrypted_size;
       }
     }
-    n_intro_points = rend_parse_introduction_points(parsed, intro_content,
+    n_intro_points = rend_parse_introduction_points(parsed, (char*)intro_content,
                                                     intro_size);
     if (n_intro_points <= 0) {
       log_warn(LD_REND, "Failed to parse introduction points. Either the "

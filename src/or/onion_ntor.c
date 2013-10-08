@@ -29,7 +29,7 @@ h_tweak(uint8_t *out,
         const char *tweak)
 {
   size_t tweak_len = strlen(tweak);
-  crypto_hmac_sha256((char*)out, tweak, tweak_len, (const char*)inp, inp_len);
+  crypto_hmac_sha256(out, (uint8_t*)tweak, tweak_len, inp, inp_len);
 }
 
 /** Wrapper around a set of tweak-values for use with the ntor handshake. */

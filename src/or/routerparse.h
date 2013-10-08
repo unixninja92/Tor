@@ -12,18 +12,18 @@
 #ifndef TOR_ROUTERPARSE_H
 #define TOR_ROUTERPARSE_H
 
-int router_get_router_hash(const char *s, size_t s_len, char *digest);
-int router_get_dir_hash(const char *s, char *digest);
-int router_get_runningrouters_hash(const char *s, char *digest);
-int router_get_networkstatus_v2_hash(const char *s, char *digest);
+int router_get_router_hash(const char *s, size_t s_len, uint8_t *digest);
+int router_get_dir_hash(const char *s, uint8_t *digest);
+int router_get_runningrouters_hash(const char *s, uint8_t *digest);
+int router_get_networkstatus_v2_hash(const char *s, uint8_t *digest);
 int router_get_networkstatus_v3_hashes(const char *s, digests_t *digests);
-int router_get_extrainfo_hash(const char *s, size_t s_len, char *digest);
+int router_get_extrainfo_hash(const char *s, size_t s_len, uint8_t *digest);
 #define DIROBJ_MAX_SIG_LEN 256
-char *router_get_dirobj_signature(const char *digest,
+char *router_get_dirobj_signature(const uint8_t *digest,
                                   size_t digest_len,
                                   crypto_pk_t *private_key);
 int router_append_dirobj_signature(char *buf, size_t buf_len,
-                                   const char *digest,
+                                   const uint8_t *digest,
                                    size_t digest_len,
                                    crypto_pk_t *private_key);
 int router_parse_list_from_string(const char **s, const char *eos,
@@ -74,10 +74,10 @@ int rend_parse_v2_service_descriptor(rend_service_descriptor_t **parsed_out,
                                      size_t *intro_points_encrypted_size_out,
                                      size_t *encoded_size_out,
                                      const char **next_out, const char *desc);
-int rend_decrypt_introduction_points(char **ipos_decrypted,
+int rend_decrypt_introduction_points(uint8_t **ipos_decrypted,
                                      size_t *ipos_decrypted_size,
-                                     const char *descriptor_cookie,
-                                     const char *ipos_encrypted,
+                                     const uint8_t *descriptor_cookie,
+                                     const uint8_t *ipos_encrypted,
                                      size_t ipos_encrypted_size);
 int rend_parse_introduction_points(rend_service_descriptor_t *parsed,
                                    const char *intro_points_encoded,

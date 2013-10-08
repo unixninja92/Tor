@@ -23,8 +23,8 @@ rend_mid_establish_intro(or_circuit_t *circ, const uint8_t *request,
                          size_t request_len)
 {
   crypto_pk_t *pk = NULL;
-  char buf[DIGEST_LEN+9];
-  char expected_digest[DIGEST_LEN];
+  uint8_t buf[DIGEST_LEN+9];
+  uint8_t expected_digest[DIGEST_LEN];
   char pk_digest[DIGEST_LEN];
   size_t asn1len;
   or_circuit_t *c;
@@ -49,7 +49,7 @@ rend_mid_establish_intro(or_circuit_t *circ, const uint8_t *request,
   /* Next asn1len bytes: asn1-encoded key. */
   if (request_len < 2+DIGEST_LEN+asn1len)
     goto truncated;
-  pk = crypto_pk_asn1_decode((char*)(request+2), asn1len);
+  pk = crypto_pk_asn1_decode(request+2, asn1len);
   if (!pk) {
     reason = END_CIRC_REASON_TORPROTOCOL;
     log_warn(LD_PROTOCOL, "Couldn't decode public key.");
@@ -71,8 +71,8 @@ rend_mid_establish_intro(or_circuit_t *circ, const uint8_t *request,
   /* Rest of body: signature of previous data */
   note_crypto_pk_op(REND_MID);
   if (crypto_pk_public_checksig_digest(pk,
-                                       (char*)request, 2+asn1len+DIGEST_LEN,
-                                       (char*)(request+2+DIGEST_LEN+asn1len),
+                                       request, 2+asn1len+DIGEST_LEN,
+                                       request+2+DIGEST_LEN+asn1len,
                                        request_len-(2+DIGEST_LEN+asn1len))<0) {
     log_warn(LD_PROTOCOL,
              "Incorrect signature on ESTABLISH_INTRO cell; rejecting.");
@@ -81,7 +81,7 @@ rend_mid_establish_intro(or_circuit_t *circ, const uint8_t *request,
   }
 
   /* The request is valid.  First, compute the hash of Bob's PK.*/
-  if (crypto_pk_get_digest(pk, pk_digest)<0) {
+  if (crypto_pk_get_digest(pk, (uint8_t*)pk_digest)<0) {
     log_warn(LD_BUG, "Internal error: couldn't hash public key.");
     goto err;
   }

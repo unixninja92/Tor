@@ -178,8 +178,8 @@ int crypto_pk_private_hybrid_decrypt(crypto_pk_t *env, uint8_t *to,
                                      const uint8_t *from, size_t fromlen,
                                      int padding, int warnOnFailure);
 
-int crypto_pk_asn1_encode(crypto_pk_t *pk, char *dest, size_t dest_len);
-crypto_pk_t *crypto_pk_asn1_decode(const char *str, size_t len);
+int crypto_pk_asn1_encode(crypto_pk_t *pk, uint8_t *dest, size_t dest_len);
+crypto_pk_t *crypto_pk_asn1_decode(const uint8_t *str, size_t len);
 int crypto_pk_get_digest(crypto_pk_t *pk, uint8_t *digest_out);
 int crypto_pk_get_all_digests(crypto_pk_t *pk, digests_t *digests_out);
 int crypto_pk_get_fingerprint(crypto_pk_t *pk, uint8_t *fp_out,int add_space);

@@ -286,7 +286,7 @@ do_parse_test(uint8_t *plaintext, size_t plaintext_len, int phase)
   size_t cell_len;
   rend_intro_cell_t *parsed_req = NULL;
   char *err_msg = NULL;
-  char digest[DIGEST_LEN];
+  uint8_t digest[DIGEST_LEN];
 
   /* Get a key */
   k = crypto_pk_new();
@@ -348,7 +348,7 @@ static ssize_t
 make_intro_from_plaintext(
     void *buf, size_t len, crypto_pk_t *key, void **cell_out)
 {
-  char *cell = NULL;
+  uint8_t *cell = NULL;
   ssize_t cell_len = -1, r;
   /* Assemble key digest and ciphertext, then construct the cell */
   ssize_t ciphertext_size;

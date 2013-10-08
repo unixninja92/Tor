@@ -200,7 +200,7 @@ set_server_identity_key(crypto_pk_t *k)
 {
   crypto_pk_free(server_identitykey);
   server_identitykey = k;
-  crypto_pk_get_digest(server_identitykey, server_identitykey_digest);
+  crypto_pk_get_digest(server_identitykey, (uint8_t*)server_identitykey_digest);
 }
 
 /** Make sure that we have set up our identity keys to match or not match as
@@ -691,13 +691,13 @@ int
 init_keys(void)
 {
   char *keydir;
-  char fingerprint[FINGERPRINT_LEN+1];
+  uint8_t fingerprint[FINGERPRINT_LEN+1];
   /*nickname<space>fp\n\0 */
   char fingerprint_line[MAX_NICKNAME_LEN+FINGERPRINT_LEN+3];
   const char *mydesc;
   crypto_pk_t *prkey;
   char digest[DIGEST_LEN];
-  char v3_digest[DIGEST_LEN];
+  uint8_t v3_digest[DIGEST_LEN];
   char *cp;
   const or_options_t *options = get_options();
   dirinfo_type_t type;
@@ -930,7 +930,7 @@ init_keys(void)
     return -1;
   }
   /* 6b. [authdirserver only] add own key to approved directories. */
-  crypto_pk_get_digest(get_server_identity_key(), digest);
+  crypto_pk_get_digest(get_server_identity_key(), (uint8_t*)digest);
   type = ((options->V1AuthoritativeDir ? V1_DIRINFO : NO_DIRINFO) |
           (options->V2AuthoritativeDir ? V2_DIRINFO : NO_DIRINFO) |
           (options->V3AuthoritativeDir ?
@@ -944,7 +944,7 @@ init_keys(void)
                                 router_get_advertised_dir_port(options, 0),
                                 router_get_advertised_or_port(options),
                                 digest,
-                                v3_digest,
+                                (char*)v3_digest,
                                 type, 0.0);
     if (!ds) {
       log_err(LD_GENERAL,"We want to be a directory authority, but we "
@@ -1836,7 +1836,7 @@ router_rebuild_descriptor(int force)
 
   ri->identity_pkey = crypto_pk_dup_key(get_server_identity_key());
   if (crypto_pk_get_digest(ri->identity_pkey,
-                           ri->cache_info.identity_digest)<0) {
+                           (uint8_t*)ri->cache_info.identity_digest)<0) {
     routerinfo_free(ri);
     return -1;
   }
@@ -1950,7 +1950,7 @@ router_rebuild_descriptor(int force)
       strlen(ei->cache_info.signed_descriptor_body);
     router_get_extrainfo_hash(ei->cache_info.signed_descriptor_body,
                               ei->cache_info.signed_descriptor_len,
-                              ei->cache_info.signed_descriptor_digest);
+                              (uint8_t*)ei->cache_info.signed_descriptor_digest);
   }
 
   /* Now finish the router descriptor. */
@@ -1990,7 +1990,7 @@ router_rebuild_descriptor(int force)
 
   router_get_router_hash(ri->cache_info.signed_descriptor_body,
                          strlen(ri->cache_info.signed_descriptor_body),
-                         ri->cache_info.signed_descriptor_digest);
+                         (uint8_t*)ri->cache_info.signed_descriptor_digest);
 
   if (ei) {
     tor_assert(! routerinfo_incompatible_with_extrainfo(ri, ei, NULL, NULL));
@@ -2274,9 +2274,9 @@ router_dump_router_to_string(routerinfo_t *router,
    */
   char *onion_pkey = NULL; /* Onion key, PEM-encoded. */
   char *identity_pkey = NULL; /* Identity key, PEM-encoded. */
-  char digest[DIGEST_LEN];
+  uint8_t digest[DIGEST_LEN];
   char published[ISO_TIME_LEN+1];
-  char fingerprint[FINGERPRINT_LEN+1];
+  uint8_t fingerprint[FINGERPRINT_LEN+1];
   int has_extra_info_digest;
   char extra_info_digest[HEX_DIGEST_LEN+1];
   size_t onion_pkeylen, identity_pkeylen;
@@ -2431,7 +2431,8 @@ router_dump_router_to_string(routerinfo_t *router,
   /* Sign the descriptor */
   smartlist_add(chunks, tor_strdup("router-signature\n"));
 
-  crypto_digest_smartlist(digest, DIGEST_LEN, chunks, "", DIGEST_SHA1);
+  crypto_digest_smartlist(digest, DIGEST_LEN, chunks, 
+                          (uint8_t*)"", DIGEST_SHA1);
 
   note_crypto_pk_op(SIGN_RTR);
   {
@@ -2574,7 +2575,7 @@ extrainfo_dump_to_string(char **s_out, extrainfo_t *extrainfo,
   const or_options_t *options = get_options();
   char identity[HEX_DIGEST_LEN+1];
   char published[ISO_TIME_LEN+1];
-  char digest[DIGEST_LEN];
+  uint8_t digest[DIGEST_LEN];
   char *bandwidth_usage;
   int result;
   static int write_stats_to_extrainfo = 1;

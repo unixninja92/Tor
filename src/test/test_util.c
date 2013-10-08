@@ -38,7 +38,7 @@ test_util_read_until_eof_impl(const char *fname, size_t file_len,
                               size_t read_limit)
 {
   char *fifo_name = NULL;
-  char *test_str = NULL;
+  uint8_t *test_str = NULL;
   char *str = NULL;
   size_t sz = 9999999;
   int fd = -1;
@@ -48,7 +48,7 @@ test_util_read_until_eof_impl(const char *fname, size_t file_len,
   test_str = tor_malloc(file_len);
   crypto_rand(test_str, file_len);
 
-  r = write_bytes_to_file(fifo_name, test_str, file_len, 1);
+  r = write_bytes_to_file(fifo_name, (char *)test_str, file_len, 1);
   tt_int_op(r, ==, 0);
 
   fd = open(fifo_name, O_RDONLY|O_BINARY);
@@ -1454,7 +1454,7 @@ test_util_mmap(void)
   char *fname2 = tor_strdup(get_fname("mapped_2"));
   char *fname3 = tor_strdup(get_fname("mapped_3"));
   const size_t buflen = 17000;
-  char *buf = tor_malloc(17000);
+  uint8_t *buf = tor_malloc(17000);
   tor_mmap_t *mapping = NULL;
 
   crypto_rand(buf, buflen);
@@ -1492,7 +1492,7 @@ test_util_mmap(void)
   test_assert(! mapping);
 
   /* Now try a big file that stretches across a few pages and isn't aligned */
-  write_bytes_to_file(fname2, buf, buflen, 1);
+  write_bytes_to_file(fname2, (char*)buf, buflen, 1);
   mapping = tor_mmap_file(fname2);
   test_assert(mapping);
   test_eq(mapping->size, buflen);
@@ -1501,7 +1501,7 @@ test_util_mmap(void)
   mapping = NULL;
 
   /* Now try a big aligned file. */
-  write_bytes_to_file(fname3, buf, 16384, 1);
+  write_bytes_to_file(fname3, (char*)buf, 16384, 1);
   mapping = tor_mmap_file(fname3);
   test_assert(mapping);
   test_eq(mapping->size, 16384);
@@ -1887,7 +1887,7 @@ test_util_memarea(void)
   /* memarea_memdup */
   {
     malloced_ptr = tor_malloc(64);
-    crypto_rand((char*)malloced_ptr, 64);
+    crypto_rand(malloced_ptr, 64);
     p1 = memarea_memdup(area, malloced_ptr, 64);
     test_assert(p1 != malloced_ptr);
     test_memeq(p1, malloced_ptr, 64);

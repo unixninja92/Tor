@@ -685,7 +685,7 @@ rend_service_load_keys(rend_service_t *s)
     log_warn(LD_BUG, "Internal error: couldn't encode service ID.");
     return -1;
   }
-  if (crypto_pk_get_digest(s->private_key, s->pk_digest)<0) {
+  if (crypto_pk_get_digest(s->private_key, (uint8_t*)s->pk_digest)<0) {
     log_warn(LD_BUG, "Couldn't compute hash of public key.");
     return -1;
   }
@@ -778,7 +778,7 @@ rend_service_load_auth_keys(rend_service_t *s, const char *hfname)
       memcpy(client->descriptor_cookie, parsed->descriptor_cookie,
              REND_DESC_COOKIE_LEN);
     } else {
-      crypto_rand(client->descriptor_cookie, REND_DESC_COOKIE_LEN);
+      crypto_rand((uint8_t*)client->descriptor_cookie, REND_DESC_COOKIE_LEN);
     }
     if (base64_encode(desc_cook_out, 3*REND_DESC_COOKIE_LEN_BASE64+1,
                       client->descriptor_cookie,
@@ -1113,7 +1113,7 @@ rend_service_introduce(origin_circuit_t *circuit, const uint8_t *request,
   uint8_t need_rp_free = 0;
   /* XXX not handled yet */
   char buf[RELAY_PAYLOAD_SIZE];
-  char keys[DIGEST_LEN+CPATH_KEY_MATERIAL_LEN]; /* Holds KH, Df, Db, Kf, Kb */
+  uint8_t keys[DIGEST_LEN+CPATH_KEY_MATERIAL_LEN]; /* Holds KH, Df, Db, Kf, Kb */
   int i;
   crypto_dh_t *dh = NULL;
   origin_circuit_t *launched = NULL;
@@ -1325,8 +1325,7 @@ rend_service_introduce(origin_circuit_t *circuit, const uint8_t *request,
     goto err;
   }
   if (crypto_dh_compute_secret(LOG_PROTOCOL_WARN, dh,
-                               (char *)(parsed_req->dh),
-                               DH_KEY_LEN, keys,
+                               parsed_req->dh, DH_KEY_LEN, keys,
                                DIGEST_LEN+CPATH_KEY_MATERIAL_LEN)<0) {
     log_warn(LD_BUG, "Internal error: couldn't complete DH handshake");
     reason = END_CIRC_REASON_INTERNAL;
@@ -1798,7 +1797,7 @@ rend_service_parse_intro_for_v2(
   }
 
   extend_info->onion_key =
-    crypto_pk_asn1_decode((const char *)(buf + 7 + DIGEST_LEN + 2), klen);
+    crypto_pk_asn1_decode(buf + 7 + DIGEST_LEN + 2, klen);
   if (!extend_info->onion_key) {
     if (err_msg_out) {
       tor_asprintf(err_msg_out,
@@ -2004,7 +2003,7 @@ rend_service_decrypt_intro(
   /* Check that this cell actually matches this service key */
 
   /* first DIGEST_LEN bytes of request is intro or service pk digest */
-  crypto_pk_get_digest(key, (char *)key_digest);
+  crypto_pk_get_digest(key, key_digest);
   if (tor_memneq(key_digest, intro->pk, DIGEST_LEN)) {
     if (err_msg_out) {
       base32_encode(service_id, REND_SERVICE_ID_LEN_BASE32 + 1,
@@ -2039,8 +2038,8 @@ rend_service_decrypt_intro(
   note_crypto_pk_op(REND_SERVER);
   result =
     crypto_pk_private_hybrid_decrypt(
-       key, (char *)buf, sizeof(buf),
-       (const char *)(intro->ciphertext), intro->ciphertext_len,
+       key, buf, sizeof(buf),
+       (intro->ciphertext), intro->ciphertext_len,
        PK_PKCS1_OAEP_PADDING, 1);
   if (result < 0) {
     if (err_msg_out) {
@@ -2399,8 +2398,8 @@ rend_service_intro_has_opened(origin_circuit_t *circuit)
   rend_service_t *service;
   size_t len;
   int r;
-  char buf[RELAY_PAYLOAD_SIZE];
-  char auth[DIGEST_LEN + 9];
+  uint8_t buf[RELAY_PAYLOAD_SIZE];
+  uint8_t auth[DIGEST_LEN + 9];
   char serviceid[REND_SERVICE_ID_LEN_BASE32+1];
   int reason = END_CIRC_REASON_TORPROTOCOL;
   crypto_pk_t *intro_key;
@@ -2495,7 +2494,7 @@ rend_service_intro_has_opened(origin_circuit_t *circuit)
 
   if (relay_send_command_from_edge(0, TO_CIRCUIT(circuit),
                                    RELAY_COMMAND_ESTABLISH_INTRO,
-                                   buf, len, circuit->cpath->prev)<0) {
+                                   (char*)buf, len, circuit->cpath->prev)<0) {
     log_info(LD_GENERAL,
              "Couldn't send introduction request for service %s on circuit %u",
              serviceid, (unsigned)circuit->base_.n_circ_id);
@@ -2570,7 +2569,7 @@ void
 rend_service_rendezvous_has_opened(origin_circuit_t *circuit)
 {
   rend_service_t *service;
-  char buf[RELAY_PAYLOAD_SIZE];
+  uint8_t buf[RELAY_PAYLOAD_SIZE];
   crypt_path_t *hop;
   char serviceid[REND_SERVICE_ID_LEN_BASE32+1];
   char hexcookie[9];
@@ -2646,7 +2645,7 @@ rend_service_rendezvous_has_opened(origin_circuit_t *circuit)
   /* Send the cell */
   if (relay_send_command_from_edge(0, TO_CIRCUIT(circuit),
                                    RELAY_COMMAND_RENDEZVOUS1,
-                                   buf, REND_COOKIE_LEN+DH_KEY_LEN+DIGEST_LEN,
+                                   (char*)buf, REND_COOKIE_LEN+DH_KEY_LEN+DIGEST_LEN,
                                    circuit->cpath->prev)<0) {
     log_warn(LD_GENERAL, "Couldn't send RENDEZVOUS1 cell.");
     reason = END_CIRC_REASON_INTERNAL;

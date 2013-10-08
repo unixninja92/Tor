@@ -23,10 +23,10 @@ test_crypto_dh(void)
 {
   crypto_dh_t *dh1 = crypto_dh_new(DH_TYPE_CIRCUIT);
   crypto_dh_t *dh2 = crypto_dh_new(DH_TYPE_CIRCUIT);
-  char p1[DH_BYTES];
-  char p2[DH_BYTES];
-  char s1[DH_BYTES];
-  char s2[DH_BYTES];
+  uint8_t p1[DH_BYTES];
+  uint8_t p2[DH_BYTES];
+  uint8_t s1[DH_BYTES];
+  uint8_t s2[DH_BYTES];
   ssize_t s1len, s2len;
 
   test_eq(crypto_dh_get_bytes(dh1), DH_BYTES);
@@ -65,7 +65,7 @@ static void
 test_crypto_rng(void)
 {
   int i, j, allok;
-  char data1[100], data2[100];
+  uint8_t data1[100], data2[100];
   double d;
 
   /* Try out RNG. */
@@ -106,7 +106,7 @@ test_crypto_rng(void)
 static void
 test_crypto_aes(void *arg)
 {
-  char *data1 = NULL, *data2 = NULL, *data3 = NULL;
+  uint8_t *data1 = NULL, *data2 = NULL, *data3 = NULL;
   crypto_cipher_t *env1 = NULL, *env2 = NULL;
   int i, j;
   char *mem_op_hex_tmp=NULL;
@@ -122,7 +122,7 @@ test_crypto_aes(void *arg)
   /* Now, test encryption and decryption with stream cipher. */
   data1[0]='\0';
   for (i = 1023; i>0; i -= 35)
-    strncat(data1, "Now is the time for all good onions", i);
+    strncat((char*)data1, "Now is the time for all good onions", i);
 
   memset(data2, 0, 1024);
   memset(data3, 0, 1024);
@@ -177,9 +177,11 @@ test_crypto_aes(void *arg)
 
   /* NIST test vector for aes. */
   /* IV starts at 0 */
-  env1 = crypto_cipher_new("\x80\x00\x00\x00\x00\x00\x00\x00"
+  env1 = crypto_cipher_new((uint8_t*)
+                           "\x80\x00\x00\x00\x00\x00\x00\x00"
                            "\x00\x00\x00\x00\x00\x00\x00\x00");
   crypto_cipher_encrypt(env1, data1,
+                        (uint8_t*)
                         "\x00\x00\x00\x00\x00\x00\x00\x00"
                         "\x00\x00\x00\x00\x00\x00\x00\x00", 16);
   test_memeq_hex(data1, "0EDD33D3C621E546455BD8BA1418BEC8");
@@ -187,9 +189,10 @@ test_crypto_aes(void *arg)
   /* Now test rollover.  All these values are originally from a python
    * script. */
   crypto_cipher_free(env1);
-  env1 = crypto_cipher_new_with_iv(
+  env1 = crypto_cipher_new_with_iv((uint8_t*)
                                    "\x80\x00\x00\x00\x00\x00\x00\x00"
                                    "\x00\x00\x00\x00\x00\x00\x00\x00",
+                                   (uint8_t*)
                                    "\x00\x00\x00\x00\x00\x00\x00\x00"
                                    "\xff\xff\xff\xff\xff\xff\xff\xff");
   memset(data2, 0,  1024);
@@ -197,9 +200,10 @@ test_crypto_aes(void *arg)
   test_memeq_hex(data1, "335fe6da56f843199066c14a00a40231"
                         "cdd0b917dbc7186908a6bfb5ffd574d3");
   crypto_cipher_free(env1);
-  env1 = crypto_cipher_new_with_iv(
+  env1 = crypto_cipher_new_with_iv((uint8_t*)
                                    "\x80\x00\x00\x00\x00\x00\x00\x00"
                                    "\x00\x00\x00\x00\x00\x00\x00\x00",
+                                   (uint8_t*)
                                    "\x00\x00\x00\x00\xff\xff\xff\xff"
                                    "\xff\xff\xff\xff\xff\xff\xff\xff");
   memset(data2, 0,  1024);
@@ -207,9 +211,10 @@ test_crypto_aes(void *arg)
   test_memeq_hex(data1, "e627c6423fa2d77832a02b2794094b73"
                         "3e63c721df790d2c6469cc1953a3ffac");
   crypto_cipher_free(env1);
-  env1 = crypto_cipher_new_with_iv(
+  env1 = crypto_cipher_new_with_iv((uint8_t*)
                                    "\x80\x00\x00\x00\x00\x00\x00\x00"
                                    "\x00\x00\x00\x00\x00\x00\x00\x00",
+                                   (uint8_t*)
                                    "\xff\xff\xff\xff\xff\xff\xff\xff"
                                    "\xff\xff\xff\xff\xff\xff\xff\xff");
   memset(data2, 0,  1024);
@@ -219,9 +224,10 @@ test_crypto_aes(void *arg)
 
   /* Now check rollover on inplace cipher. */
   crypto_cipher_free(env1);
-  env1 = crypto_cipher_new_with_iv(
+  env1 = crypto_cipher_new_with_iv((uint8_t*)
                                    "\x80\x00\x00\x00\x00\x00\x00\x00"
                                    "\x00\x00\x00\x00\x00\x00\x00\x00",
+                                   (uint8_t*)
                                    "\xff\xff\xff\xff\xff\xff\xff\xff"
                                    "\xff\xff\xff\xff\xff\xff\xff\xff");
   crypto_cipher_crypt_inplace(env1, data2, 64);
@@ -230,13 +236,14 @@ test_crypto_aes(void *arg)
                         "93e2c5243d6839eac58503919192f7ae"
                         "1908e67cafa08d508816659c2e693191");
   crypto_cipher_free(env1);
-  env1 = crypto_cipher_new_with_iv(
+  env1 = crypto_cipher_new_with_iv((uint8_t*)
                                    "\x80\x00\x00\x00\x00\x00\x00\x00"
                                    "\x00\x00\x00\x00\x00\x00\x00\x00",
+                                   (uint8_t*)
                                    "\xff\xff\xff\xff\xff\xff\xff\xff"
                                    "\xff\xff\xff\xff\xff\xff\xff\xff");
   crypto_cipher_crypt_inplace(env1, data2, 64);
-  test_assert(tor_mem_is_zero(data2, 64));
+  test_assert(tor_mem_is_zero((char*)data2, 64));
 
  done:
   tor_free(mem_op_hex_tmp);
@@ -255,19 +262,19 @@ test_crypto_sha(void)
 {
   crypto_digest_t *d1 = NULL, *d2 = NULL;
   int i;
-  char key[160];
-  char digest[32];
-  char data[50];
-  char d_out1[DIGEST_LEN], d_out2[DIGEST256_LEN];
+  uint8_t key[160];
+  uint8_t digest[32];
+  uint8_t data[50];
+  uint8_t d_out1[DIGEST_LEN], d_out2[DIGEST256_LEN];
   char *mem_op_hex_tmp=NULL;
 
   /* Test SHA-1 with a test vector from the specification. */
-  i = crypto_digest(data, "abc", 3);
+  i = crypto_digest(data, (uint8_t*)"abc", 3);
   test_memeq_hex(data, "A9993E364706816ABA3E25717850C26C9CD0D89D");
   tt_int_op(i, ==, 0);
 
   /* Test SHA-256 with a test vector from the specification. */
-  i = crypto_digest256(data, "abc", 3, DIGEST_SHA256);
+  i = crypto_digest256(data, (uint8_t*)"abc", 3, DIGEST_SHA256);
   test_memeq_hex(data, "BA7816BF8F01CFEA414140DE5DAE2223B00361A3"
                        "96177A9CB410FF61F20015AD");
   tt_int_op(i, ==, 0);
@@ -275,26 +282,26 @@ test_crypto_sha(void)
   /* Test HMAC-SHA256 with test cases from wikipedia and RFC 4231 */
 
   /* Case empty (wikipedia) */
-  crypto_hmac_sha256(digest, "", 0, "", 0);
-  test_streq(hex_str(digest, 32),
+  crypto_hmac_sha256(digest, (uint8_t*)"", 0, (uint8_t*)"", 0);
+  test_streq(hex_str((char*)digest, 32),
            "B613679A0814D9EC772F95D778C35FC5FF1697C493715653C6C712144292C5AD");
 
   /* Case quick-brown (wikipedia) */
-  crypto_hmac_sha256(digest, "key", 3,
-                     "The quick brown fox jumps over the lazy dog", 43);
-  test_streq(hex_str(digest, 32),
+  crypto_hmac_sha256(digest, (uint8_t*)"key", 3,
+                     (uint8_t*)"The quick brown fox jumps over the lazy dog", 43);
+  test_streq(hex_str((char*)digest, 32),
            "F7BC83F430538424B13298E6AA6FB143EF4D59A14946175997479DBC2D1A3CD8");
 
   /* "Test Case 1" from RFC 4231 */
   memset(key, 0x0b, 20);
-  crypto_hmac_sha256(digest, key, 20, "Hi There", 8);
+  crypto_hmac_sha256(digest, key, 20, (uint8_t*)"Hi There", 8);
   test_memeq_hex(digest,
                  "b0344c61d8db38535ca8afceaf0bf12b"
                  "881dc200c9833da726e9376c2e32cff7");
 
   /* "Test Case 2" from RFC 4231 */
   memset(key, 0x0b, 20);
-  crypto_hmac_sha256(digest, "Jefe", 4, "what do ya want for nothing?", 28);
+  crypto_hmac_sha256(digest, (uint8_t*)"Jefe", 4, (uint8_t*)"what do ya want for nothing?", 28);
   test_memeq_hex(digest,
                  "5bdcc146bf60754e6a042426089575c7"
                  "5a003f089d2739839dec58b964ec3843");
@@ -308,7 +315,7 @@ test_crypto_sha(void)
                  "2959098b3ef8c122d9635514ced565fe");
 
   /* "Test case 4" from RFC 4231 */
-  base16_decode(key, 25,
+  base16_decode((char*)key, 25,
                 "0102030405060708090a0b0c0d0e0f10111213141516171819", 50);
   memset(data, 0xcd, 50);
   crypto_hmac_sha256(digest, key, 25, data, 50);
@@ -318,14 +325,14 @@ test_crypto_sha(void)
 
   /* "Test case 5" from RFC 4231 */
   memset(key, 0x0c, 20);
-  crypto_hmac_sha256(digest, key, 20, "Test With Truncation", 20);
+  crypto_hmac_sha256(digest, key, 20, (uint8_t*)"Test With Truncation", 20);
   test_memeq_hex(digest,
                  "a3b6167473100ee06e0c796c2955552b");
 
   /* "Test case 6" from RFC 4231 */
   memset(key, 0xaa, 131);
   crypto_hmac_sha256(digest, key, 131,
-                     "Test Using Larger Than Block-Size Key - Hash Key First",
+                     (uint8_t*)"Test Using Larger Than Block-Size Key - Hash Key First",
                      54);
   test_memeq_hex(digest,
                  "60e431591ee0b67f0d8a26aacbf5b77f"
@@ -334,6 +341,7 @@ test_crypto_sha(void)
   /* "Test case 7" from RFC 4231 */
   memset(key, 0xaa, 131);
   crypto_hmac_sha256(digest, key, 131,
+                     (uint8_t*)
                      "This is a test using a larger than block-size key and a "
                      "larger than block-size data. The key needs to be hashed "
                      "before being used by the HMAC algorithm.", 152);
@@ -344,20 +352,20 @@ test_crypto_sha(void)
   /* Incremental digest code. */
   d1 = crypto_digest_new();
   test_assert(d1);
-  crypto_digest_add_bytes(d1, "abcdef", 6);
+  crypto_digest_add_bytes(d1, (uint8_t*)"abcdef", 6);
   d2 = crypto_digest_dup(d1);
   test_assert(d2);
-  crypto_digest_add_bytes(d2, "ghijkl", 6);
+  crypto_digest_add_bytes(d2, (uint8_t*)"ghijkl", 6);
   crypto_digest_get_digest(d2, d_out1, sizeof(d_out1));
-  crypto_digest(d_out2, "abcdefghijkl", 12);
+  crypto_digest(d_out2, (uint8_t*)"abcdefghijkl", 12);
   test_memeq(d_out1, d_out2, DIGEST_LEN);
   crypto_digest_assign(d2, d1);
-  crypto_digest_add_bytes(d2, "mno", 3);
+  crypto_digest_add_bytes(d2, (uint8_t*)"mno", 3);
   crypto_digest_get_digest(d2, d_out1, sizeof(d_out1));
-  crypto_digest(d_out2, "abcdefmno", 9);
+  crypto_digest(d_out2, (uint8_t*)"abcdefmno", 9);
   test_memeq(d_out1, d_out2, DIGEST_LEN);
   crypto_digest_get_digest(d1, d_out1, sizeof(d_out1));
-  crypto_digest(d_out2, "abcdef", 6);
+  crypto_digest(d_out2, (uint8_t*)"abcdef", 6);
   test_memeq(d_out1, d_out2, DIGEST_LEN);
   crypto_digest_free(d1);
   crypto_digest_free(d2);
@@ -365,20 +373,20 @@ test_crypto_sha(void)
   /* Incremental digest code with sha256 */
   d1 = crypto_digest256_new(DIGEST_SHA256);
   test_assert(d1);
-  crypto_digest_add_bytes(d1, "abcdef", 6);
+  crypto_digest_add_bytes(d1, (uint8_t*)"abcdef", 6);
   d2 = crypto_digest_dup(d1);
   test_assert(d2);
-  crypto_digest_add_bytes(d2, "ghijkl", 6);
+  crypto_digest_add_bytes(d2, (uint8_t*)"ghijkl", 6);
   crypto_digest_get_digest(d2, d_out1, sizeof(d_out1));
-  crypto_digest256(d_out2, "abcdefghijkl", 12, DIGEST_SHA256);
+  crypto_digest256(d_out2, (uint8_t*)"abcdefghijkl", 12, DIGEST_SHA256);
   test_memeq(d_out1, d_out2, DIGEST_LEN);
   crypto_digest_assign(d2, d1);
-  crypto_digest_add_bytes(d2, "mno", 3);
+  crypto_digest_add_bytes(d2, (uint8_t*)"mno", 3);
   crypto_digest_get_digest(d2, d_out1, sizeof(d_out1));
-  crypto_digest256(d_out2, "abcdefmno", 9, DIGEST_SHA256);
+  crypto_digest256(d_out2, (uint8_t*)"abcdefmno", 9, DIGEST_SHA256);
   test_memeq(d_out1, d_out2, DIGEST_LEN);
   crypto_digest_get_digest(d1, d_out1, sizeof(d_out1));
-  crypto_digest256(d_out2, "abcdef", 6, DIGEST_SHA256);
+  crypto_digest256(d_out2, (uint8_t*)"abcdef", 6, DIGEST_SHA256);
   test_memeq(d_out1, d_out2, DIGEST_LEN);
 
  done:
@@ -395,7 +403,7 @@ test_crypto_pk(void)
 {
   crypto_pk_t *pk1 = NULL, *pk2 = NULL;
   char *encoded = NULL;
-  char data1[1024], data2[1024], data3[1024];
+  uint8_t data1[1024], data2[1024], data3[1024];
   size_t size;
   int i, len;
 
@@ -418,10 +426,10 @@ test_crypto_pk(void)
   test_eq(1024, crypto_pk_num_bits(pk2));
 
   test_eq(128, crypto_pk_public_encrypt(pk2, data1, sizeof(data1),
-                                        "Hello whirled.", 15,
+                                        (uint8_t*)"Hello whirled.", 15,
                                         PK_PKCS1_OAEP_PADDING));
   test_eq(128, crypto_pk_public_encrypt(pk1, data2, sizeof(data1),
-                                        "Hello whirled.", 15,
+                                        (uint8_t*)"Hello whirled.", 15,
                                         PK_PKCS1_OAEP_PADDING));
   /* oaep padding should make encryption not match */
   test_memneq(data1, data2, 128);
@@ -456,7 +464,7 @@ test_crypto_pk(void)
                                         PK_PKCS1_OAEP_PADDING,1));
 
   /* Now try signing. */
-  strlcpy(data1, "Ossifrage", 1024);
+  strlcpy((char*)data1, "Ossifrage", 1024);
   test_eq(128, crypto_pk_private_sign(pk1, data2, sizeof(data2), data1, 10));
   test_eq(10,
           crypto_pk_public_checksig(pk1, data3, sizeof(data3), data2, 128));
@@ -515,7 +523,7 @@ test_crypto_digests(void)
   crypto_pk_t *k = NULL;
   ssize_t r;
   digests_t pkey_digests;
-  char digest[DIGEST_LEN];
+  uint8_t digest[DIGEST_LEN];
 
   k = crypto_pk_new();
   test_assert(k);
@@ -524,14 +532,14 @@ test_crypto_digests(void)
 
   r = crypto_pk_get_digest(k, digest);
   test_assert(r == 0);
-  test_memeq(hex_str(digest, DIGEST_LEN),
+  test_memeq(hex_str((char*)digest, DIGEST_LEN),
              AUTHORITY_SIGNKEY_1_DIGEST, HEX_DIGEST_LEN);
 
   r = crypto_pk_get_all_digests(k, &pkey_digests);
 
-  test_memeq(hex_str(pkey_digests.d[DIGEST_SHA1], DIGEST_LEN),
+  test_memeq(hex_str((char*)pkey_digests.d[DIGEST_SHA1], DIGEST_LEN),
              AUTHORITY_SIGNKEY_1_DIGEST, HEX_DIGEST_LEN);
-  test_memeq(hex_str(pkey_digests.d[DIGEST_SHA256], DIGEST256_LEN),
+  test_memeq(hex_str((char*)pkey_digests.d[DIGEST_SHA256], DIGEST256_LEN),
              AUTHORITY_SIGNKEY_1_DIGEST256, HEX_DIGEST256_LEN);
  done:
   crypto_pk_free(k);
@@ -542,7 +550,7 @@ test_crypto_digests(void)
 static void
 test_crypto_formats(void)
 {
-  char *data1 = NULL, *data2 = NULL, *data3 = NULL;
+  uint8_t *data1 = NULL, *data2 = NULL, *data3 = NULL;
   int i, j, idx;
 
   data1 = tor_malloc(1024);
@@ -553,74 +561,74 @@ test_crypto_formats(void)
   /* Base64 tests */
   memset(data1, 6, 1024);
   for (idx = 0; idx < 10; ++idx) {
-    i = base64_encode(data2, 1024, data1, idx);
+    i = base64_encode((char*)data2, 1024, (char*)data1, idx);
     test_assert(i >= 0);
-    j = base64_decode(data3, 1024, data2, i);
+    j = base64_decode((char*)data3, 1024, (char*)data2, i);
     test_eq(j,idx);
     test_memeq(data3, data1, idx);
   }
 
-  strlcpy(data1, "Test string that contains 35 chars.", 1024);
-  strlcat(data1, " 2nd string that contains 35 chars.", 1024);
+  strlcpy((char*)data1, "Test string that contains 35 chars.", 1024);
+  strlcat((char*)data1, " 2nd string that contains 35 chars.", 1024);
 
-  i = base64_encode(data2, 1024, data1, 71);
+  i = base64_encode((char*)data2, 1024, (char*)data1, 71);
   test_assert(i >= 0);
-  j = base64_decode(data3, 1024, data2, i);
+  j = base64_decode((char*)data3, 1024, (char*)data2, i);
   test_eq(j, 71);
   test_streq(data3, data1);
   test_assert(data2[i] == '\0');
 
   crypto_rand(data1, DIGEST_LEN);
   memset(data2, 100, 1024);
-  digest_to_base64(data2, data1);
-  test_eq(BASE64_DIGEST_LEN, strlen(data2));
+  digest_to_base64((char*)data2, (char*)data1);
+  test_eq(BASE64_DIGEST_LEN, strlen((char*)data2));
   test_eq(100, data2[BASE64_DIGEST_LEN+2]);
   memset(data3, 99, 1024);
-  test_eq(digest_from_base64(data3, data2), 0);
+  test_eq(digest_from_base64((char*)data3, (char*)data2), 0);
   test_memeq(data1, data3, DIGEST_LEN);
   test_eq(99, data3[DIGEST_LEN+1]);
 
-  test_assert(digest_from_base64(data3, "###") < 0);
+  test_assert(digest_from_base64((char*)data3, "###") < 0);
 
   /* Encoding SHA256 */
   crypto_rand(data2, DIGEST256_LEN);
   memset(data2, 100, 1024);
-  digest256_to_base64(data2, data1);
-  test_eq(BASE64_DIGEST256_LEN, strlen(data2));
+  digest256_to_base64((char*)data2, (char*)data1);
+  test_eq(BASE64_DIGEST256_LEN, strlen((char*)data2));
   test_eq(100, data2[BASE64_DIGEST256_LEN+2]);
   memset(data3, 99, 1024);
-  test_eq(digest256_from_base64(data3, data2), 0);
+  test_eq(digest256_from_base64((char*)data3, (char*)data2), 0);
   test_memeq(data1, data3, DIGEST256_LEN);
   test_eq(99, data3[DIGEST256_LEN+1]);
 
   /* Base32 tests */
-  strlcpy(data1, "5chrs", 1024);
+  strlcpy((char*)data1, "5chrs", 1024);
   /* bit pattern is:  [35 63 68 72 73] ->
    *        [00110101 01100011 01101000 01110010 01110011]
    * By 5s: [00110 10101 10001 10110 10000 11100 10011 10011]
    */
-  base32_encode(data2, 9, data1, 5);
+  base32_encode((char*)data2, 9, (char*)data1, 5);
   test_streq(data2, "gvrwq4tt");
 
-  strlcpy(data1, "\xFF\xF5\x6D\x44\xAE\x0D\x5C\xC9\x62\xC4", 1024);
-  base32_encode(data2, 30, data1, 10);
+  strlcpy((char*)data1, "\xFF\xF5\x6D\x44\xAE\x0D\x5C\xC9\x62\xC4", 1024);
+  base32_encode((char*)data2, 30, (char*)data1, 10);
   test_streq(data2, "772w2rfobvomsywe");
 
   /* Base16 tests */
-  strlcpy(data1, "6chrs\xff", 1024);
-  base16_encode(data2, 13, data1, 6);
+  strlcpy((char*)data1, "6chrs\xff", 1024);
+  base16_encode((char*)data2, 13, (char*)data1, 6);
   test_streq(data2, "3663687273FF");
 
-  strlcpy(data1, "f0d678affc000100", 1024);
-  i = base16_decode(data2, 8, data1, 16);
+  strlcpy((char*)data1, "f0d678affc000100", 1024);
+  i = base16_decode((char*)data2, 8, (char*)data1, 16);
   test_eq(i,0);
   test_memeq(data2, "\xf0\xd6\x78\xaf\xfc\x00\x01\x00",8);
 
   /* now try some failing base16 decodes */
-  test_eq(-1, base16_decode(data2, 8, data1, 15)); /* odd input len */
-  test_eq(-1, base16_decode(data2, 7, data1, 16)); /* dest too short */
-  strlcpy(data1, "f0dz!8affc000100", 1024);
-  test_eq(-1, base16_decode(data2, 8, data1, 16));
+  test_eq(-1, base16_decode((char*)data2, 8, (char*)data1, 15)); /* odd input len */
+  test_eq(-1, base16_decode((char*)data2, 7, (char*)data1, 16)); /* dest too short */
+  strlcpy((char*)data1, "f0dz!8affc000100", 1024);
+  test_eq(-1, base16_decode((char*)data2, 8, (char*)data1, 16));
 
   tor_free(data1);
   tor_free(data2);
@@ -628,8 +636,8 @@ test_crypto_formats(void)
 
   /* Add spaces to fingerprint */
   {
-    data1 = tor_strdup("ABCD1234ABCD56780000ABCD1234ABCD56780000");
-    test_eq(strlen(data1), 40);
+    data1 = (uint8_t*)tor_strdup("ABCD1234ABCD56780000ABCD1234ABCD56780000");
+    test_eq(strlen((char*)data1), 40);
     data2 = tor_malloc(FINGERPRINT_LEN+1);
     crypto_add_spaces_to_fp(data2, FINGERPRINT_LEN+1, data1);
     test_streq(data2, "ABCD 1234 ABCD 5678 0000 ABCD 1234 ABCD 5678 0000");
@@ -647,9 +655,9 @@ test_crypto_formats(void)
 static void
 test_crypto_s2k(void)
 {
-  char buf[29];
-  char buf2[29];
-  char *buf3 = NULL;
+  uint8_t buf[29];
+  uint8_t buf2[29];
+  uint8_t *buf3 = NULL;
   int i;
 
   memset(buf, 0, sizeof(buf));
@@ -657,7 +665,7 @@ test_crypto_s2k(void)
   buf3 = tor_malloc(65536);
   memset(buf3, 0, 65536);
 
-  secret_to_key(buf+9, 20, "", 0, buf);
+  secret_to_key(buf+9, 20, (uint8_t*)"", 0, buf);
   crypto_digest(buf2+9, buf3, 1024);
   test_memeq(buf, buf2, 29);
 
@@ -665,7 +673,7 @@ test_crypto_s2k(void)
   memcpy(buf2,"vrbacrda",8);
   buf[8] = 96;
   buf2[8] = 96;
-  secret_to_key(buf+9, 20, "12345678", 8, buf);
+  secret_to_key(buf+9, 20, (uint8_t*)"12345678", 8, buf);
   for (i = 0; i < 65536; i += 16) {
     memcpy(buf3+i, "vrbacrda12345678", 16);
   }
@@ -680,9 +688,9 @@ test_crypto_s2k(void)
 static void
 test_crypto_aes_iv(void *arg)
 {
-  char *plain, *encrypted1, *encrypted2, *decrypted1, *decrypted2;
-  char plain_1[1], plain_15[15], plain_16[16], plain_17[17];
-  char key1[16], key2[16];
+  uint8_t *plain, *encrypted1, *encrypted2, *decrypted1, *decrypted2;
+  uint8_t plain_1[1], plain_15[15], plain_16[16], plain_17[17];
+  uint8_t key1[16], key2[16];
   ssize_t encrypted_size, decrypted_size;
 
   int use_evp = !strcmp(arg,"evp");
@@ -793,7 +801,7 @@ test_crypto_base32_decode(void)
 {
   char plain[60], encoded[96 + 1], decoded[60];
   int res;
-  crypto_rand(plain, 60);
+  crypto_rand((uint8_t*)plain, 60);
   /* Encode and decode a random string. */
   base32_encode(encoded, 96 + 1, plain, 60);
   res = base32_decode(decoded, 60, encoded, 96);
@@ -967,7 +975,7 @@ test_crypto_curve25519_impl(void *arg)
        * make sure that the handshake still works out the same as it would
        * otherwise. */
       uint8_t byte;
-      crypto_rand((char*)&byte, 1);
+      crypto_rand(&byte, 1);
       e2k[31] |= (byte & 0x80);
     }
     curve25519_impl(e1e2k,e1,e2k);

@@ -200,7 +200,7 @@ format_networkstatus_vote(crypto_pk_t *private_signing_key,
 
   note_crypto_pk_op(SIGN_DIR);
   {
-    char *sig = router_get_dirobj_signature((char*)digest, DIGEST_LEN,
+    char *sig = router_get_dirobj_signature(digest, DIGEST_LEN,
                                             private_signing_key);
     if (!sig) {
       log_warn(LD_BUG, "Unable to sign networkstatus vote.");
@@ -2109,7 +2109,7 @@ networkstatus_compute_consensus(smartlist_t *votes,
                    signing_key_fingerprint);
     }
     /* And the signature. */
-    if (!(signature = router_get_dirobj_signature((char*)digest, digest_len,
+    if (!(signature = router_get_dirobj_signature(digest, digest_len,
                                                   signing_key))) {
       log_warn(LD_BUG, "Couldn't sign consensus networkstatus.");
       goto done;
@@ -2131,7 +2131,7 @@ networkstatus_compute_consensus(smartlist_t *votes,
                      signing_key_fingerprint);
       }
 
-      if (!(signature = router_get_dirobj_signature((char*)digest, digest_len,
+      if (!(signature = router_get_dirobj_signature(digest, digest_len,
                                                     legacy_signing_key))) {
         log_warn(LD_BUG, "Couldn't sign consensus networkstatus.");
         goto done;

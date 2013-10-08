@@ -527,7 +527,7 @@ static addr_policy_t *router_parse_addr_policy(directory_token_t *tok,
                                                unsigned fmt_flags);
 static addr_policy_t *router_parse_addr_policy_private(directory_token_t *tok);
 
-static int router_get_hash_impl(const char *s, size_t s_len, char *digest,
+static int router_get_hash_impl(const char *s, size_t s_len, uint8_t *digest,
                                 const char *start_str, const char *end_str,
                                 char end_char,
                                 digest_algorithm_t alg);
@@ -559,7 +559,7 @@ static directory_token_t *get_next_token(memarea_t *area,
                                          token_rule_t *table);
 #define CST_CHECK_AUTHORITY   (1<<0)
 #define CST_NO_CHECK_OBJTYPE  (1<<1)
-static int check_signature_token(const char *digest,
+static int check_signature_token(const uint8_t *digest,
                                  ssize_t digest_len,
                                  directory_token_t *tok,
                                  crypto_pk_t *pkey,
@@ -611,7 +611,7 @@ dump_desc(const char *desc, const char *type)
  * <b>s</b>.  Return 0 on success, -1 on failure.
  */
 int
-router_get_dir_hash(const char *s, char *digest)
+router_get_dir_hash(const char *s, uint8_t *digest)
 {
   return router_get_hash_impl(s, strlen(s), digest,
                               "signed-directory","\ndirectory-signature",'\n',
@@ -622,7 +622,7 @@ router_get_dir_hash(const char *s, char *digest)
  * <b>s</b>. Return 0 on success, -1 on failure.
  */
 int
-router_get_router_hash(const char *s, size_t s_len, char *digest)
+router_get_router_hash(const char *s, size_t s_len, uint8_t *digest)
 {
   return router_get_hash_impl(s, s_len, digest,
                               "router ","\nrouter-signature", '\n',
@@ -633,7 +633,7 @@ router_get_router_hash(const char *s, size_t s_len, char *digest)
  * string in <b>s</b>. Return 0 on success, -1 on failure.
  */
 int
-router_get_runningrouters_hash(const char *s, char *digest)
+router_get_runningrouters_hash(const char *s, uint8_t *digest)
 {
   return router_get_hash_impl(s, strlen(s), digest,
                               "network-status","\ndirectory-signature", '\n',
@@ -643,7 +643,7 @@ router_get_runningrouters_hash(const char *s, char *digest)
 /** Set <b>digest</b> to the SHA-1 digest of the hash of the network-status
  * string in <b>s</b>.  Return 0 on success, -1 on failure. */
 int
-router_get_networkstatus_v2_hash(const char *s, char *digest)
+router_get_networkstatus_v2_hash(const char *s, uint8_t *digest)
 {
   return router_get_hash_impl(s, strlen(s), digest,
                               "network-status-version","\ndirectory-signature",
@@ -665,7 +665,7 @@ router_get_networkstatus_v3_hashes(const char *s, digests_t *digests)
 /** Set <b>digest</b> to the SHA-1 digest of the hash of the <b>s_len</b>-byte
  * extrainfo string at <b>s</b>.  Return 0 on success, -1 on failure. */
 int
-router_get_extrainfo_hash(const char *s, size_t s_len, char *digest)
+router_get_extrainfo_hash(const char *s, size_t s_len, uint8_t *digest)
 {
   return router_get_hash_impl(s, s_len, digest, "extra-info",
                               "\nrouter-signature",'\n', DIGEST_SHA1);
@@ -678,11 +678,11 @@ router_get_extrainfo_hash(const char *s, size_t s_len, char *digest)
  * and return the new signature on success or NULL on failure.
  */
 char *
-router_get_dirobj_signature(const char *digest,
+router_get_dirobj_signature(const uint8_t *digest,
                             size_t digest_len,
                             crypto_pk_t *private_key)
 {
-  char *signature;
+  unsigned char *signature;
   size_t i, keysize;
   int siglen;
   char *buf = NULL;
@@ -707,7 +707,7 @@ router_get_dirobj_signature(const char *digest,
     goto truncated;
 
   i = strlen(buf);
-  if (base64_encode(buf+i, buf_len-i, signature, siglen) < 0) {
+  if (base64_encode(buf+i, buf_len-i, (char*)signature, siglen) < 0) {
     log_warn(LD_BUG,"couldn't base64-encode signature");
     goto err;
   }
@@ -734,7 +734,7 @@ router_get_dirobj_signature(const char *digest,
  * failure.
  */
 int
-router_append_dirobj_signature(char *buf, size_t buf_len, const char *digest,
+router_append_dirobj_signature(char *buf, size_t buf_len, const uint8_t *digest,
                                size_t digest_len, crypto_pk_t *private_key)
 {
   size_t sig_len, s_len;
@@ -838,13 +838,13 @@ tor_version_is_obsolete(const char *myversion, const char *versionlist)
 static int
 dir_signing_key_is_trusted(crypto_pk_t *key)
 {
-  char digest[DIGEST_LEN];
+  uint8_t digest[DIGEST_LEN];
   if (!key) return 0;
   if (crypto_pk_get_digest(key, digest) < 0) {
     log_warn(LD_DIR, "Error computing dir-signing-key digest");
     return 0;
   }
-  if (!router_digest_is_trusted_dir(digest)) {
+  if (!router_digest_is_trusted_dir((char*)digest)) {
     log_warn(LD_DIR, "Listed dir-signing-key is not trusted");
     return 0;
   }
@@ -860,14 +860,14 @@ dir_signing_key_is_trusted(crypto_pk_t *key)
  * on failure.
  */
 static int
-check_signature_token(const char *digest,
+check_signature_token(const uint8_t *digest,
                       ssize_t digest_len,
                       directory_token_t *tok,
                       crypto_pk_t *pkey,
                       int flags,
                       const char *doctype)
 {
-  char *signed_digest;
+  uint8_t *signed_digest;
   size_t keysize;
   const int check_authority = (flags & CST_CHECK_AUTHORITY);
   const int check_objtype = ! (flags & CST_NO_CHECK_OBJTYPE);
@@ -893,7 +893,7 @@ check_signature_token(const char *digest,
   keysize = crypto_pk_keysize(pkey);
   signed_digest = tor_malloc(keysize);
   if (crypto_pk_public_checksig(pkey, signed_digest, keysize,
-                                tok->object_body, tok->object_size)
+                                (uint8_t*)tok->object_body, tok->object_size)
       < digest_len) {
     log_warn(LD_DIR, "Error reading %s: invalid signature.", doctype);
     tor_free(signed_digest);
@@ -1121,7 +1121,7 @@ router_parse_entry_from_string(const char *s, const char *end,
                                const char *prepend_annotations)
 {
   routerinfo_t *router = NULL;
-  char digest[128];
+  uint8_t digest[128];
   smartlist_t *tokens = NULL, *exit_policy_tokens = NULL;
   directory_token_t *tok;
   struct in_addr in;
@@ -1328,7 +1328,7 @@ router_parse_entry_from_string(const char *s, const char *end,
   router->identity_pkey = tok->key;
   tok->key = NULL; /* Prevent free */
   if (crypto_pk_get_digest(router->identity_pkey,
-                           router->cache_info.identity_digest)) {
+                           (uint8_t*)router->cache_info.identity_digest)) {
     log_warn(LD_DIR, "Couldn't calculate key digest"); goto err;
   }
 
@@ -1479,7 +1479,7 @@ extrainfo_parse_entry_from_string(const char *s, const char *end,
                            int cache_copy, struct digest_ri_map_t *routermap)
 {
   extrainfo_t *extrainfo = NULL;
-  char digest[128];
+  uint8_t digest[128];
   smartlist_t *tokens = NULL;
   directory_token_t *tok;
   crypto_pk_t *key = NULL;
@@ -1601,7 +1601,7 @@ authority_cert_parse_from_string(const char *s, const char **end_of_string)
 
   authority_cert_t *cert = NULL, *old_cert;
   smartlist_t *tokens = NULL;
-  char digest[DIGEST_LEN];
+  uint8_t digest[DIGEST_LEN];
   directory_token_t *tok;
   char fp_declared[DIGEST_LEN];
   char *eos;
@@ -1655,7 +1655,7 @@ authority_cert_parse_from_string(const char *s, const char **end_of_string)
   tor_assert(tok->key);
   cert->signing_key = tok->key;
   tok->key = NULL;
-  if (crypto_pk_get_digest(cert->signing_key, cert->signing_key_digest))
+  if (crypto_pk_get_digest(cert->signing_key, (uint8_t*)cert->signing_key_digest))
     goto err;
 
   tok = find_by_keyword(tokens, K_DIR_IDENTITY_KEY);
@@ -1673,7 +1673,7 @@ authority_cert_parse_from_string(const char *s, const char **end_of_string)
   }
 
   if (crypto_pk_get_digest(cert->identity_key,
-                           cert->cache_info.identity_digest))
+                           (uint8_t*)cert->cache_info.identity_digest))
     goto err;
 
   if (tor_memneq(cert->cache_info.identity_digest, fp_declared, DIGEST_LEN)) {
@@ -1740,7 +1740,7 @@ authority_cert_parse_from_string(const char *s, const char **end_of_string)
     if ((tok = find_opt_by_keyword(tokens, K_DIR_KEY_CROSSCERT))) {
       /* XXXX Once all authorities generate cross-certified certificates,
        * make this field mandatory. */
-      if (check_signature_token(cert->cache_info.identity_digest,
+      if (check_signature_token((uint8_t*)cert->cache_info.identity_digest,
                                 DIGEST_LEN,
                                 tok,
                                 cert->signing_key,
@@ -2122,8 +2122,8 @@ networkstatus_v2_parse_from_string(const char *s)
   smartlist_t *tokens = smartlist_new();
   smartlist_t *footer_tokens = smartlist_new();
   networkstatus_v2_t *ns = NULL;
-  char ns_digest[DIGEST_LEN];
-  char tmp_digest[DIGEST_LEN];
+  uint8_t ns_digest[DIGEST_LEN];
+  uint8_t tmp_digest[DIGEST_LEN];
   struct in_addr in;
   directory_token_t *tok;
   int i;
@@ -3340,12 +3340,12 @@ networkstatus_parse_detached_signatures(const char *s, const char *eos)
     }
     digests = detached_get_digests(sigs, flavor);
     tor_assert(digests);
-    if (!tor_mem_is_zero(digests->d[alg], DIGEST256_LEN)) {
+    if (!tor_mem_is_zero((char*)digests->d[alg], DIGEST256_LEN)) {
       log_warn(LD_DIR, "Multiple digests for %s with %s on detached "
                "signatures document", flavor, algname);
       continue;
     }
-    if (base16_decode(digests->d[alg], DIGEST256_LEN,
+    if (base16_decode((char*)digests->d[alg], DIGEST256_LEN,
                       hexdigest, strlen(hexdigest)) < 0) {
       log_warn(LD_DIR, "Bad encoding on consensus-digest in detached "
                "networkstatus signatures");
@@ -4147,7 +4147,7 @@ router_get_hash_impl_helper(const char *s, size_t s_len,
  * If no such substring exists, return -1.
  */
 static int
-router_get_hash_impl(const char *s, size_t s_len, char *digest,
+router_get_hash_impl(const char *s, size_t s_len, uint8_t *digest,
                      const char *start_str,
                      const char *end_str, char end_c,
                      digest_algorithm_t alg)
@@ -4158,12 +4158,12 @@ router_get_hash_impl(const char *s, size_t s_len, char *digest,
     return -1;
 
   if (alg == DIGEST_SHA1) {
-    if (crypto_digest(digest, start, end-start)) {
+    if (crypto_digest(digest, (uint8_t*)start, end-start)) {
       log_warn(LD_BUG,"couldn't compute digest");
       return -1;
     }
   } else {
-    if (crypto_digest256(digest, start, end-start, alg)) {
+    if (crypto_digest256(digest, (uint8_t*)start, end-start, alg)) {
       log_warn(LD_BUG,"couldn't compute digest");
       return -1;
     }
@@ -4183,7 +4183,7 @@ router_get_hashes_impl(const char *s, size_t s_len, digests_t *digests,
                                   &start,&end)<0)
     return -1;
 
-  if (crypto_digest_all(digests, start, end-start)) {
+  if (crypto_digest_all(digests, (uint8_t*)start, end-start)) {
     log_warn(LD_BUG,"couldn't compute digests");
     return -1;
   }
@@ -4350,7 +4350,7 @@ microdescs_parse_from_string(const char *s, const char *eos,
       md->ipv6_exit_policy = parse_short_policy(tok->args[0]);
     }
 
-    crypto_digest256(md->digest, md->body, md->bodylen, DIGEST_SHA256);
+    crypto_digest256((uint8_t*)md->digest, (uint8_t*)md->body, md->bodylen, DIGEST_SHA256);
 
     smartlist_add(result, md);
 
@@ -4616,15 +4616,15 @@ rend_parse_v2_service_descriptor(rend_service_descriptor_t **parsed_out,
 {
   rend_service_descriptor_t *result =
                             tor_malloc_zero(sizeof(rend_service_descriptor_t));
-  char desc_hash[DIGEST_LEN];
+  uint8_t desc_hash[DIGEST_LEN];
   const char *eos;
   smartlist_t *tokens = smartlist_new();
   directory_token_t *tok;
-  char secret_id_part[DIGEST_LEN];
+  uint8_t secret_id_part[DIGEST_LEN];
   int i, version, num_ok=1;
   smartlist_t *versions;
-  char public_key_hash[DIGEST_LEN];
-  char test_desc_id[DIGEST_LEN];
+  uint8_t public_key_hash[DIGEST_LEN];
+  uint8_t test_desc_id[DIGEST_LEN];
   memarea_t *area = NULL;
   tor_assert(desc);
   /* Check if desc starts correctly. */
@@ -4711,7 +4711,7 @@ rend_parse_v2_service_descriptor(rend_service_descriptor_t **parsed_out,
     log_warn(LD_REND, "Invalid secret ID part: '%s'", tok->args[0]);
     goto err;
   }
-  if (base32_decode(secret_id_part, DIGEST_LEN, tok->args[0], 32) < 0) {
+  if (base32_decode((char*)secret_id_part, DIGEST_LEN, tok->args[0], 32) < 0) {
     log_warn(LD_REND, "Secret ID part contains illegal characters: %s",
              tok->args[0]);
     goto err;
@@ -4795,10 +4795,10 @@ rend_parse_v2_service_descriptor(rend_service_descriptor_t **parsed_out,
  * <b>ipos_decrypted</b> and its length to <b>ipos_decrypted_size</b>.
  * Return 0 if decryption was successful and -1 otherwise. */
 int
-rend_decrypt_introduction_points(char **ipos_decrypted,
+rend_decrypt_introduction_points(uint8_t **ipos_decrypted,
                                  size_t *ipos_decrypted_size,
-                                 const char *descriptor_cookie,
-                                 const char *ipos_encrypted,
+                                 const uint8_t *descriptor_cookie,
+                                 const uint8_t *ipos_encrypted,
                                  size_t ipos_encrypted_size)
 {
   tor_assert(ipos_encrypted);
@@ -4809,7 +4809,7 @@ rend_decrypt_introduction_points(char **ipos_decrypted,
     return -1;
   }
   if (ipos_encrypted[0] == (int)REND_BASIC_AUTH) {
-    char iv[CIPHER_IV_LEN], client_id[REND_BASIC_AUTH_CLIENT_ID_LEN],
+    uint8_t iv[CIPHER_IV_LEN], client_id[REND_BASIC_AUTH_CLIENT_ID_LEN],
          session_key[CIPHER_KEY_LEN], *dec;
     int declen, client_blocks;
     size_t pos = 0, len, client_entries_len;
@@ -4871,7 +4871,7 @@ rend_decrypt_introduction_points(char **ipos_decrypted,
              "check your authorization for this service!");
     return -1;
   } else if (ipos_encrypted[0] == (int)REND_STEALTH_AUTH) {
-    char *dec;
+    uint8_t *dec;
     int declen;
     if (ipos_encrypted_size < CIPHER_IV_LEN + 2) {
       log_warn(LD_REND, "Size of encrypted introduction points is too "
