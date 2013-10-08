@@ -1114,7 +1114,7 @@ handle_control_authenticate(control_connection_t *conn, uint32_t len,
       options->HashedControlSessionPassword) {
     int bad = 0;
     smartlist_t *sl_tmp;
-    char received[DIGEST_LEN];
+    uint8_t received[DIGEST_LEN];
     int also_cookie = options->CookieAuthentication;
     sl = smartlist_new();
     if (options->HashedControlPassword) {
@@ -1145,9 +1145,9 @@ handle_control_authenticate(control_connection_t *conn, uint32_t len,
       SMARTLIST_FOREACH(sl, char *, cp, tor_free(cp));
       smartlist_free(sl);
     } else {
-      SMARTLIST_FOREACH(sl, char *, expected,
+      SMARTLIST_FOREACH(sl, uint8_t *, expected,
       {
-        secret_to_key(received,DIGEST_LEN,password,password_len,expected);
+        secret_to_key(received,DIGEST_LEN,(const uint8_t *)password,password_len,expected);
         if (tor_memeq(expected+S2K_SPECIFIER_LEN, received, DIGEST_LEN))
           goto ok;
       });
@@ -1490,7 +1490,7 @@ getinfo_helper_misc(control_connection_t *conn, const char *question,
     }
     server_key = get_server_identity_key();
     *answer = tor_malloc(HEX_DIGEST_LEN+1);
-    crypto_pk_get_fingerprint(server_key, *answer, 0);
+    crypto_pk_get_fingerprint(server_key, (uint8_t *)*answer, 0);
   }
   return 0;
 }
@@ -2995,9 +2995,9 @@ handle_control_authchallenge(control_connection_t *conn, uint32_t len,
   const char *cp = body;
   char *client_nonce;
   size_t client_nonce_len;
-  char server_hash[DIGEST256_LEN];
+  uint8_t server_hash[DIGEST256_LEN];
   char server_hash_encoded[HEX_DIGEST256_LEN+1];
-  char server_nonce[SAFECOOKIE_SERVER_NONCE_LEN];
+  uint8_t server_nonce[SAFECOOKIE_SERVER_NONCE_LEN];
   char server_nonce_encoded[(2*SAFECOOKIE_SERVER_NONCE_LEN) + 1];
 
   cp += strspn(cp, " \t\n\r");
@@ -3067,34 +3067,34 @@ handle_control_authchallenge(control_connection_t *conn, uint32_t len,
     size_t tmp_len = (AUTHENTICATION_COOKIE_LEN +
                       client_nonce_len +
                       SAFECOOKIE_SERVER_NONCE_LEN);
-    char *tmp = tor_malloc_zero(tmp_len);
-    char *client_hash = tor_malloc_zero(DIGEST256_LEN);
+    uint8_t *tmp = tor_malloc_zero(tmp_len);
+    uint8_t *client_hash = tor_malloc_zero(DIGEST256_LEN);
     memcpy(tmp, authentication_cookie, AUTHENTICATION_COOKIE_LEN);
     memcpy(tmp + AUTHENTICATION_COOKIE_LEN, client_nonce, client_nonce_len);
     memcpy(tmp + AUTHENTICATION_COOKIE_LEN + client_nonce_len,
            server_nonce, SAFECOOKIE_SERVER_NONCE_LEN);
 
     crypto_hmac_sha256(server_hash,
-                       SAFECOOKIE_SERVER_TO_CONTROLLER_CONSTANT,
+                       (const uint8_t *)SAFECOOKIE_SERVER_TO_CONTROLLER_CONSTANT,
                        strlen(SAFECOOKIE_SERVER_TO_CONTROLLER_CONSTANT),
                        tmp,
                        tmp_len);
 
     crypto_hmac_sha256(client_hash,
-                       SAFECOOKIE_CONTROLLER_TO_SERVER_CONSTANT,
+                       (const uint8_t *)SAFECOOKIE_CONTROLLER_TO_SERVER_CONSTANT,
                        strlen(SAFECOOKIE_CONTROLLER_TO_SERVER_CONSTANT),
                        tmp,
                        tmp_len);
 
-    conn->safecookie_client_hash = client_hash;
+    conn->safecookie_client_hash = (char*)client_hash;
 
     tor_free(tmp);
   }
 
   base16_encode(server_hash_encoded, sizeof(server_hash_encoded),
-                server_hash, sizeof(server_hash));
+                (char*)server_hash, sizeof(server_hash));
   base16_encode(server_nonce_encoded, sizeof(server_nonce_encoded),
-                server_nonce, sizeof(server_nonce));
+                (char*)server_nonce, sizeof(server_nonce));
 
   connection_printf_to_buf(conn,
                            "250 AUTHCHALLENGE SERVERHASH=%s "

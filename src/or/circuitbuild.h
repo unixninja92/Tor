@@ -28,7 +28,7 @@ int circuit_timeout_want_to_count_circ(origin_circuit_t *circ);
 int circuit_send_next_onion_skin(origin_circuit_t *circ);
 void circuit_note_clock_jumped(int seconds_elapsed);
 int circuit_extend(cell_t *cell, circuit_t *circ);
-int circuit_init_cpath_crypto(crypt_path_t *cpath, const char *key_data,
+int circuit_init_cpath_crypto(crypt_path_t *cpath, const uint8_t *key_data,
                               int reverse);
 struct created_cell_t;
 int circuit_finish_handshake(origin_circuit_t *circ,
@@ -37,7 +37,7 @@ int circuit_truncated(origin_circuit_t *circ, crypt_path_t *layer,
                       int reason);
 int onionskin_answer(or_circuit_t *circ,
                      const struct created_cell_t *created_cell,
-                     const char *keys,
+                     const uint8_t *keys,
                      const uint8_t *rend_circ_nonce);
 int circuit_all_predicted_ports_handled(time_t now, int *need_uptime,
                                         int *need_capacity);

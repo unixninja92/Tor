@@ -198,14 +198,14 @@ add_fingerprint_to_dir(const char *nickname, const char *fp,
 int
 dirserv_add_own_fingerprint(const char *nickname, crypto_pk_t *pk)
 {
-  char fp[FINGERPRINT_LEN+1];
+  uint8_t fp[FINGERPRINT_LEN+1];
   if (crypto_pk_get_fingerprint(pk, fp, 0)<0) {
     log_err(LD_BUG, "Error computing fingerprint");
     return -1;
   }
   if (!fingerprint_list)
     fingerprint_list = authdir_config_new();
-  add_fingerprint_to_dir(nickname, fp, fingerprint_list);
+  add_fingerprint_to_dir(nickname, (char*)fp, fingerprint_list);
   return 0;
 }
 
@@ -319,7 +319,7 @@ dirserv_load_fingerprint_file(void)
 uint32_t
 dirserv_router_get_status(const routerinfo_t *router, const char **msg)
 {
-  char d[DIGEST_LEN];
+  uint8_t d[DIGEST_LEN];
 
   if (crypto_pk_get_digest(router->identity_pkey, d)) {
     log_warn(LD_BUG,"Error computing fingerprint");
@@ -328,7 +328,7 @@ dirserv_router_get_status(const routerinfo_t *router, const char **msg)
     return FP_REJECT;
   }
 
-  return dirserv_get_status_impl(d, router->nickname,
+  return dirserv_get_status_impl((char*)d, router->nickname,
                                  router->address,
                                  router->addr, router->or_port,
                                  router->platform, router->contact_info,
@@ -2940,7 +2940,7 @@ dirserv_generate_networkstatus_vote_obj(crypto_pk_t *private_key,
   const char *contact;
   smartlist_t *routers, *routerstatuses;
   char identity_digest[DIGEST_LEN];
-  char signing_key_digest[DIGEST_LEN];
+  uint8_t signing_key_digest[DIGEST_LEN];
   int naming = options->NamingAuthoritativeDir;
   int listbadexits = options->AuthDirListBadExits;
   int listbaddirs = options->AuthDirListBadDirs;
@@ -2969,7 +2969,7 @@ dirserv_generate_networkstatus_vote_obj(crypto_pk_t *private_key,
     log_err(LD_BUG, "Error computing signing key digest");
     return NULL;
   }
-  if (crypto_pk_get_digest(cert->identity_key, identity_digest)<0) {
+  if (crypto_pk_get_digest(cert->identity_key, (uint8_t*)identity_digest)<0) {
     log_err(LD_BUG, "Error computing identity key digest");
     return NULL;
   }
@@ -3148,7 +3148,8 @@ dirserv_generate_networkstatus_vote_obj(crypto_pk_t *private_key,
   if (options->V3AuthUseLegacyKey) {
     authority_cert_t *c = get_my_v3_legacy_cert();
     if (c) {
-      if (crypto_pk_get_digest(c->identity_key, voter->legacy_id_digest)) {
+      if (crypto_pk_get_digest(c->identity_key,
+          (uint8_t*)voter->legacy_id_digest)) {
         log_warn(LD_BUG, "Unable to compute digest of legacy v3 identity key");
         memset(voter->legacy_id_digest, 0, DIGEST_LEN);
       }
@@ -3176,9 +3177,9 @@ generate_v2_networkstatus_opinion(void)
   char *status = NULL, *client_versions = NULL, *server_versions = NULL,
     *identity_pkey = NULL, *hostname = NULL;
   const or_options_t *options = get_options();
-  char fingerprint[FINGERPRINT_LEN+1];
+  uint8_t fingerprint[FINGERPRINT_LEN+1];
   char published[ISO_TIME_LEN+1];
-  char digest[DIGEST_LEN];
+  uint8_t digest[DIGEST_LEN];
   uint32_t addr;
   crypto_pk_t *private_key;
   routerlist_t *rl = router_get_routerlist();
@@ -3295,12 +3296,13 @@ generate_v2_networkstatus_opinion(void)
   smartlist_add_asprintf(chunks, "directory-signature %s\n",
                          options->Nickname);
 
-  crypto_digest_smartlist(digest, DIGEST_LEN, chunks, "", DIGEST_SHA1);
+  crypto_digest_smartlist(digest, DIGEST_LEN, chunks, 
+                          (const uint8_t*)"", DIGEST_SHA1);
 
   note_crypto_pk_op(SIGN_DIR);
   {
     char *sig;
-    if (!(sig = router_get_dirobj_signature(digest,DIGEST_LEN,
+    if (!(sig = router_get_dirobj_signature((const char*)digest,DIGEST_LEN,
                                             private_key))) {
       log_warn(LD_BUG, "Unable to sign router status.");
       goto done;

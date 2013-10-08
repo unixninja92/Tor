@@ -1550,8 +1550,8 @@ options_act(const or_options_t *old_options)
       return -1;
     }
     options->BridgePassword_AuthDigest_ = tor_malloc(DIGEST256_LEN);
-    crypto_digest256(options->BridgePassword_AuthDigest_,
-                     http_authenticator, strlen(http_authenticator),
+    crypto_digest256((uint8_t*)options->BridgePassword_AuthDigest_,
+                     (uint8_t*)http_authenticator, strlen(http_authenticator),
                      DIGEST_SHA256);
     tor_free(http_authenticator);
   }
@@ -6645,7 +6645,7 @@ init_cookie_authentication(const char *fname, const char *header,
 
   /* Generate the cookie */
   *cookie_out = tor_malloc(cookie_len);
-  if (crypto_rand((char *)*cookie_out, cookie_len) < 0)
+  if (crypto_rand(*cookie_out, cookie_len) < 0)
     goto done;
 
   /* Create the string that should be written on the file. */

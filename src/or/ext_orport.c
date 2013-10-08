@@ -183,8 +183,8 @@ handle_client_auth_nonce(const char *client_nonce, size_t client_nonce_len,
                          char **client_hash_out,
                          char **reply_out, size_t *reply_len_out)
 {
-  char server_hash[EXT_OR_PORT_AUTH_HASH_LEN] = {0};
-  char server_nonce[EXT_OR_PORT_AUTH_NONCE_LEN] = {0};
+  uint8_t server_hash[EXT_OR_PORT_AUTH_HASH_LEN] = {0};
+  uint8_t server_nonce[EXT_OR_PORT_AUTH_NONCE_LEN] = {0};
   char *reply;
   size_t reply_len;
 
@@ -201,9 +201,9 @@ handle_client_auth_nonce(const char *client_nonce, size_t client_nonce_len,
     size_t hmac_c_msg_len = strlen(EXT_OR_PORT_AUTH_CLIENT_TO_SERVER_CONST) +
       2*EXT_OR_PORT_AUTH_NONCE_LEN;
 
-    char *hmac_s_msg = tor_malloc_zero(hmac_s_msg_len);
-    char *hmac_c_msg = tor_malloc_zero(hmac_c_msg_len);
-    char *correct_client_hash = tor_malloc_zero(EXT_OR_PORT_AUTH_HASH_LEN);
+    uint8_t *hmac_s_msg = tor_malloc_zero(hmac_s_msg_len);
+    uint8_t *hmac_c_msg = tor_malloc_zero(hmac_c_msg_len);
+    uint8_t *correct_client_hash = tor_malloc_zero(EXT_OR_PORT_AUTH_HASH_LEN);
 
     memcpy(hmac_s_msg,
            EXT_OR_PORT_AUTH_SERVER_TO_CLIENT_CONST,
@@ -224,20 +224,20 @@ handle_client_auth_nonce(const char *client_nonce, size_t client_nonce_len,
            server_nonce, EXT_OR_PORT_AUTH_NONCE_LEN);
 
     crypto_hmac_sha256(server_hash,
-                       (char*)ext_or_auth_cookie,
+                       ext_or_auth_cookie,
                        EXT_OR_PORT_AUTH_COOKIE_LEN,
                        hmac_s_msg,
                        hmac_s_msg_len);
 
     crypto_hmac_sha256(correct_client_hash,
-                       (char*)ext_or_auth_cookie,
+                       ext_or_auth_cookie,
                        EXT_OR_PORT_AUTH_COOKIE_LEN,
                        hmac_c_msg,
                        hmac_c_msg_len);
 
     /* Store the client hash we generated. We will need to compare it
        with the hash sent by the client. */
-    *client_hash_out = correct_client_hash;
+    *client_hash_out = (char *)correct_client_hash;
 
     memwipe(hmac_s_msg, 0, hmac_s_msg_len);
     memwipe(hmac_c_msg, 0, hmac_c_msg_len);
@@ -252,9 +252,9 @@ handle_client_auth_nonce(const char *client_nonce, size_t client_nonce_len,
     char client_nonce_encoded[(2*EXT_OR_PORT_AUTH_NONCE_LEN) + 1];
 
     base16_encode(server_hash_encoded, sizeof(server_hash_encoded),
-                  server_hash, sizeof(server_hash));
+                  (char*)server_hash, sizeof(server_hash));
     base16_encode(server_nonce_encoded, sizeof(server_nonce_encoded),
-                  server_nonce, sizeof(server_nonce));
+                  (char*)server_nonce, sizeof(server_nonce));
     base16_encode(client_nonce_encoded, sizeof(client_nonce_encoded),
                   client_nonce, sizeof(client_nonce));
 

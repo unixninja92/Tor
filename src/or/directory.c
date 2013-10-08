@@ -3354,11 +3354,11 @@ directory_handle_command_get(dir_connection_t *conn, const char *headers,
       connection_dir_is_encrypted(conn) &&
       !strcmp(url,"/tor/networkstatus-bridges")) {
     char *status;
-    char digest[DIGEST256_LEN];
+    unsigned char digest[DIGEST256_LEN];
 
     header = http_get_header(headers, "Authorization: Basic ");
     if (header)
-      crypto_digest256(digest, header, strlen(header), DIGEST_SHA256);
+      crypto_digest256(digest, (uint8_t*)header, strlen(header), DIGEST_SHA256);
 
     /* now make sure the password is there and right */
     if (!header ||

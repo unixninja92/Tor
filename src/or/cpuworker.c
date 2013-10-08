@@ -369,7 +369,7 @@ connection_cpu_process_inbuf(connection_t *conn)
     tor_assert(! CIRCUIT_IS_ORIGIN(circ));
     if (onionskin_answer(TO_OR_CIRCUIT(circ),
                          &rpl.created_cell,
-                         (const char*)rpl.keys,
+                         rpl.keys,
                          rpl.rend_auth_material) < 0) {
       log_warn(LD_OR,"onionskin_answer failed. Closing.");
       circuit_mark_for_close(circ, END_CIRC_REASON_INTERNAL);

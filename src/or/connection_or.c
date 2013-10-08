@@ -47,7 +47,7 @@ static int connection_or_launch_v3_or_handshake(or_connection_t *conn);
 static int connection_or_process_cells_from_inbuf(or_connection_t *conn);
 static int connection_or_check_valid_tls_handshake(or_connection_t *conn,
                                                    int started_here,
-                                                   char *digest_rcvd_out);
+                                                   uint8_t *digest_rcvd_out);
 
 static void connection_or_tls_renegotiated_cb(tor_tls_t *tls, void *_conn);
 
@@ -231,7 +231,7 @@ connection_or_set_ext_or_identifier(or_connection_t *conn)
       connection_or_remove_from_ext_or_id_map(conn);
 
   do {
-    crypto_rand(random_id, sizeof(random_id));
+    crypto_rand((uint8_t*)random_id, sizeof(random_id));
   } while (digestmap_get(orconn_ext_or_id_map, random_id));
 
   if (!conn->ext_or_conn_id)
@@ -1586,7 +1586,7 @@ connection_or_nonopen_was_started_here(or_connection_t *conn)
 static int
 connection_or_check_valid_tls_handshake(or_connection_t *conn,
                                         int started_here,
-                                        char *digest_rcvd_out)
+                                        uint8_t *digest_rcvd_out)
 {
   crypto_pk_t *identity_rcvd=NULL;
   const or_options_t *options = get_options();
@@ -1641,8 +1641,7 @@ connection_or_check_valid_tls_handshake(or_connection_t *conn,
   crypto_pk_free(identity_rcvd);
 
   if (started_here)
-    return connection_or_client_learned_peer_id(conn,
-                                     (const uint8_t*)digest_rcvd_out);
+    return connection_or_client_learned_peer_id(conn, digest_rcvd_out);
 
   return 0;
 }
@@ -1756,7 +1755,7 @@ connection_tls_finish_handshake(or_connection_t *conn)
   directory_set_dirty();
 
   if (connection_or_check_valid_tls_handshake(conn, started_here,
-                                              digest_rcvd) < 0)
+                                              (uint8_t*)digest_rcvd) < 0)
     return -1;
 
   circuit_build_times_network_is_live(get_circuit_build_times_mutable());
@@ -1871,7 +1870,7 @@ or_handshake_state_record_cell(or_connection_t *conn,
   /* Re-packing like this is a little inefficient, but we don't have to do
      this very often at all. */
   cell_pack(&packed, cell, conn->wide_circ_ids);
-  crypto_digest_add_bytes(d, packed.body, cell_network_size);
+  crypto_digest_add_bytes(d, (const uint8_t *)packed.body, cell_network_size);
   memwipe(&packed, 0, sizeof(packed));
 }
 
@@ -1891,7 +1890,7 @@ or_handshake_state_record_var_cell(or_connection_t *conn,
 {
   crypto_digest_t *d, **dptr;
   int n;
-  char buf[VAR_CELL_MAX_HEADER_SIZE];
+  uint8_t buf[VAR_CELL_MAX_HEADER_SIZE];
   if (incoming) {
     if (!state->digest_received_data)
       return;
@@ -1905,9 +1904,9 @@ or_handshake_state_record_var_cell(or_connection_t *conn,
 
   d = *dptr;
 
-  n = var_cell_pack_header(cell, buf, conn->wide_circ_ids);
+  n = var_cell_pack_header(cell, (char *)buf, conn->wide_circ_ids);
   crypto_digest_add_bytes(d, buf, n);
-  crypto_digest_add_bytes(d, (const char *)cell->payload, cell->payload_len);
+  crypto_digest_add_bytes(d, cell->payload, cell->payload_len);
 
   memwipe(buf, 0, sizeof(buf));
 }
@@ -2241,7 +2240,7 @@ connection_or_send_auth_challenge_cell(or_connection_t *conn)
   if (! conn->handshake_state)
     return -1;
 
-  if (crypto_rand((char*)challenge, OR_AUTH_CHALLENGE_LEN) < 0)
+  if (crypto_rand(challenge, OR_AUTH_CHALLENGE_LEN) < 0)
     return -1;
   cell = var_cell_new(OR_AUTH_CHALLENGE_LEN + 4);
   cell->command = CELL_AUTH_CHALLENGE;
@@ -2331,11 +2330,11 @@ connection_or_compute_authenticate_cell_body(or_connection_t *conn,
     }
 
     /* Server log digest : 32 octets */
-    crypto_digest_get_digest(server_d, (char*)ptr, 32);
+    crypto_digest_get_digest(server_d, ptr, 32);
     ptr += 32;
 
     /* Client log digest : 32 octets */
-    crypto_digest_get_digest(client_d, (char*)ptr, 32);
+    crypto_digest_get_digest(client_d, ptr, 32);
     ptr += 32;
   }
 
@@ -2370,7 +2369,7 @@ connection_or_compute_authenticate_cell_body(or_connection_t *conn,
   /* 8 octets were reserved for the current time, but we're trying to get out
    * of the habit of sending time around willynilly.  Fortunately, nothing
    * checks it.  That's followed by 16 bytes of nonce. */
-  crypto_rand((char*)ptr, 24);
+  crypto_rand(ptr, 24);
   ptr += 24;
 
   tor_assert(ptr - out == V3_AUTH_BODY_LEN);
@@ -2380,10 +2379,10 @@ connection_or_compute_authenticate_cell_body(or_connection_t *conn,
 
   {
     int siglen;
-    char d[32];
-    crypto_digest256(d, (char*)out, ptr-out, DIGEST_SHA256);
+    uint8_t d[32];
+    crypto_digest256(d, out, ptr-out, DIGEST_SHA256);
     siglen = crypto_pk_private_sign(signing_key,
-                                    (char*)ptr, outlen - (ptr-out),
+                                    ptr, outlen - (ptr-out),
                                     d, 32);
     if (siglen < 0)
       return -1;

@@ -300,7 +300,7 @@ evdns_log_cb(int warn, const char *msg)
 static void
 dns_randfn_(char *b, size_t n)
 {
-  crypto_rand(b,n);
+  crypto_rand((uint8_t*)b,n);
 }
 
 /** Initialize the DNS subsystem; called by the OR process. */

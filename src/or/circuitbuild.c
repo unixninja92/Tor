@@ -1045,7 +1045,7 @@ circuit_extend(cell_t *cell, circuit_t *circ)
  * (If 'reverse' is true, then f_XX and b_XX are swapped.)
  */
 int
-circuit_init_cpath_crypto(crypt_path_t *cpath, const char *key_data,
+circuit_init_cpath_crypto(crypt_path_t *cpath, const uint8_t *key_data,
                           int reverse)
 {
   crypto_digest_t *tmp_digest;
@@ -1816,7 +1816,7 @@ pathbias_send_usable_probe(circuit_t *circ)
   tor_gettimeofday(&circ->timestamp_began);
 
   /* Generate a random address for the nonce */
-  crypto_rand((char*)&ocirc->pathbias_probe_nonce,
+  crypto_rand((uint8_t*)&ocirc->pathbias_probe_nonce,
               sizeof(ocirc->pathbias_probe_nonce));
   ocirc->pathbias_probe_nonce &= 0x00ffffff;
   probe_nonce = tor_dup_ip(ocirc->pathbias_probe_nonce);
@@ -2607,7 +2607,7 @@ int
 circuit_finish_handshake(origin_circuit_t *circ,
                          const created_cell_t *reply)
 {
-  char keys[CPATH_KEY_MATERIAL_LEN];
+  uint8_t keys[CPATH_KEY_MATERIAL_LEN];
   crypt_path_t *hop;
   int rv;
 
@@ -2629,7 +2629,7 @@ circuit_finish_handshake(origin_circuit_t *circ,
     if (onion_skin_client_handshake(hop->handshake_state.tag,
                                     &hop->handshake_state,
                                     reply->reply, reply->handshake_len,
-                                    (uint8_t*)keys, sizeof(keys),
+                                    keys, sizeof(keys),
                                     (uint8_t*)hop->rend_circ_nonce) < 0) {
       log_warn(LD_CIRC,"onion_skin_client_handshake failed.");
       return -END_CIRC_REASON_TORPROTOCOL;
@@ -2705,7 +2705,7 @@ circuit_truncated(origin_circuit_t *circ, crypt_path_t *layer, int reason)
 int
 onionskin_answer(or_circuit_t *circ,
                  const created_cell_t *created_cell,
-                 const char *keys,
+                 const uint8_t *keys,
                  const uint8_t *rend_circ_nonce)
 {
   cell_t cell;

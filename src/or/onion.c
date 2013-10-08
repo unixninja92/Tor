@@ -422,7 +422,7 @@ onion_skin_create(int type,
 
     if (onion_skin_TAP_create(node->onion_key,
                               &state_out->u.tap,
-                              (char*)onion_skin_out) < 0)
+                              onion_skin_out) < 0)
       return -1;
 
     r = TAP_ONIONSKIN_CHALLENGE_LEN;
@@ -482,10 +482,9 @@ onion_skin_server_handshake(int type,
   case ONION_HANDSHAKE_TYPE_TAP:
     if (onionskin_len != TAP_ONIONSKIN_CHALLENGE_LEN)
       return -1;
-    if (onion_skin_TAP_server_handshake((const char*)onion_skin,
-                                        keys->onion_key, keys->last_onion_key,
-                                        (char*)reply_out,
-                                        (char*)keys_out, keys_out_len)<0)
+    if (onion_skin_TAP_server_handshake(onion_skin, keys->onion_key,
+                                        keys->last_onion_key,
+                                        reply_out, keys_out, keys_out_len)<0)
       return -1;
     r = TAP_ONIONSKIN_REPLY_LEN;
     memcpy(rend_nonce_out, reply_out+DH_KEY_LEN, DIGEST_LEN);
@@ -554,9 +553,8 @@ onion_skin_client_handshake(int type,
   case ONION_HANDSHAKE_TYPE_TAP:
     if (reply_len != TAP_ONIONSKIN_REPLY_LEN)
       return -1;
-    if (onion_skin_TAP_client_handshake(handshake_state->u.tap,
-                                        (const char*)reply,
-                                        (char *)keys_out, keys_out_len) < 0)
+    if (onion_skin_TAP_client_handshake(handshake_state->u.tap, reply,
+                                        keys_out, keys_out_len) < 0)
       return -1;
 
     memcpy(rend_authenticator_out, reply+DH_KEY_LEN, DIGEST_LEN);

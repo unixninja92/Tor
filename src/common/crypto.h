@@ -234,11 +234,11 @@ crypto_dh_t *crypto_dh_new(int dh_type);
 crypto_dh_t *crypto_dh_dup(const crypto_dh_t *dh);
 int crypto_dh_get_bytes(crypto_dh_t *dh);
 int crypto_dh_generate_public(crypto_dh_t *dh);
-int crypto_dh_get_public(crypto_dh_t *dh, char *pubkey_out,
+int crypto_dh_get_public(crypto_dh_t *dh, uint8_t *pubkey_out,
                          size_t pubkey_out_len);
 ssize_t crypto_dh_compute_secret(int severity, crypto_dh_t *dh,
-                             const char *pubkey, size_t pubkey_len,
-                             char *secret_out, size_t secret_out_len);
+                             const uint8_t *pubkey, size_t pubkey_len,
+                             uint8_t *secret_out, size_t secret_out_len);
 void crypto_dh_free(crypto_dh_t *dh);
 
 int crypto_expand_key_material_TAP(const uint8_t *key_in,

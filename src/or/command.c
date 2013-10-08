@@ -316,8 +316,7 @@ command_process_create_cell(cell_t *cell, channel_t *chan)
     created_cell.cell_type = CELL_CREATED_FAST;
     created_cell.handshake_len = len;
 
-    if (onionskin_answer(circ, &created_cell,
-                         (const char *)keys, rend_circ_nonce)<0) {
+    if (onionskin_answer(circ, &created_cell, keys, rend_circ_nonce)<0) {
       log_warn(LD_OR,"Failed to reply to CREATE_FAST cell. Closing.");
       circuit_mark_for_close(TO_CIRCUIT(circ), END_CIRC_REASON_INTERNAL);
       return;

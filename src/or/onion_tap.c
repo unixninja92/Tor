@@ -37,9 +37,9 @@
 int
 onion_skin_TAP_create(crypto_pk_t *dest_router_key,
                   crypto_dh_t **handshake_state_out,
-                  char *onion_skin_out) /* TAP_ONIONSKIN_CHALLENGE_LEN bytes */
+                  uint8_t *onion_skin_out) /* TAP_ONIONSKIN_CHALLENGE_LEN bytes */
 {
-  char challenge[DH_KEY_LEN];
+  uint8_t challenge[DH_KEY_LEN];
   crypto_dh_t *dh = NULL;
   int dhbytes, pkbytes;
 
@@ -87,18 +87,18 @@ onion_skin_TAP_create(crypto_pk_t *dest_router_key,
 int
 onion_skin_TAP_server_handshake(
                             /*TAP_ONIONSKIN_CHALLENGE_LEN*/
-                            const char *onion_skin,
+                            const uint8_t *onion_skin,
                             crypto_pk_t *private_key,
                             crypto_pk_t *prev_private_key,
                             /*TAP_ONIONSKIN_REPLY_LEN*/
-                            char *handshake_reply_out,
-                            char *key_out,
+                            uint8_t *handshake_reply_out,
+                            uint8_t *key_out,
                             size_t key_out_len)
 {
-  char challenge[TAP_ONIONSKIN_CHALLENGE_LEN];
+  uint8_t challenge[TAP_ONIONSKIN_CHALLENGE_LEN];
   crypto_dh_t *dh = NULL;
   ssize_t len;
-  char *key_material=NULL;
+  uint8_t *key_material=NULL;
   size_t key_material_len=0;
   int i;
   crypto_pk_t *k;
@@ -180,12 +180,12 @@ onion_skin_TAP_server_handshake(
  */
 int
 onion_skin_TAP_client_handshake(crypto_dh_t *handshake_state,
-            const char *handshake_reply, /* TAP_ONIONSKIN_REPLY_LEN bytes */
-            char *key_out,
+            const uint8_t *handshake_reply, /* TAP_ONIONSKIN_REPLY_LEN bytes */
+            uint8_t *key_out,
             size_t key_out_len)
 {
   ssize_t len;
-  char *key_material=NULL;
+  uint8_t *key_material=NULL;
   size_t key_material_len;
   tor_assert(crypto_dh_get_bytes(handshake_state) == DH_KEY_LEN);
 

@@ -518,7 +518,7 @@ accounting_run_housekeeping(time_t now)
 static void
 accounting_set_wakeup_time(void)
 {
-  char digest[DIGEST_LEN];
+  uint8_t digest[DIGEST_LEN];
   crypto_digest_t *d_env;
   uint64_t time_to_exhaust_bw;
   int time_to_consider;
@@ -531,8 +531,8 @@ accounting_set_wakeup_time(void)
   }
 
   if (server_identity_key_is_set()) {
-    char buf[ISO_TIME_LEN+1];
-    format_iso_time(buf, interval_start_time);
+    uint8_t buf[ISO_TIME_LEN+1];
+    format_iso_time((char*)buf, interval_start_time);
 
     crypto_pk_get_digest(get_server_identity_key(), digest);
 

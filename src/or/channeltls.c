@@ -1913,19 +1913,19 @@ channel_tls_process_authenticate_cell(var_cell_t *cell, channel_tls_t *chan)
   {
     crypto_pk_t *pk = tor_tls_cert_get_key(
                                    chan->conn->handshake_state->auth_cert);
-    char d[DIGEST256_LEN];
-    char *signed_data;
+    uint8_t d[DIGEST256_LEN];
+    uint8_t *signed_data;
     size_t keysize;
     int signed_len;
 
     if (!pk)
       ERR("Internal error: couldn't get RSA key from AUTH cert.");
-    crypto_digest256(d, (char*)auth, V3_AUTH_BODY_LEN, DIGEST_SHA256);
+    crypto_digest256(d, auth, V3_AUTH_BODY_LEN, DIGEST_SHA256);
 
     keysize = crypto_pk_keysize(pk);
     signed_data = tor_malloc(keysize);
     signed_len = crypto_pk_public_checksig(pk, signed_data, keysize,
-                                           (char*)auth + V3_AUTH_BODY_LEN,
+                                           auth + V3_AUTH_BODY_LEN,
                                            authlen - V3_AUTH_BODY_LEN);
     crypto_pk_free(pk);
     if (signed_len < 0) {

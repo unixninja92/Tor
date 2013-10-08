@@ -67,7 +67,7 @@ format_networkstatus_vote(crypto_pk_t *private_signing_key,
   smartlist_t *chunks;
   const char *client_versions = NULL, *server_versions = NULL;
   char fingerprint[FINGERPRINT_LEN+1];
-  char digest[DIGEST_LEN];
+  uint8_t digest[DIGEST_LEN];
   uint32_t addr;
   char *client_versions_line = NULL, *server_versions_line = NULL;
   networkstatus_voter_info_t *voter;
@@ -184,10 +184,10 @@ format_networkstatus_vote(crypto_pk_t *private_signing_key,
   /* The digest includes everything up through the space after
    * directory-signature.  (Yuck.) */
   crypto_digest_smartlist(digest, DIGEST_LEN, chunks,
-                          "directory-signature ", DIGEST_SHA1);
+                          (const uint8_t *)"directory-signature ", DIGEST_SHA1);
 
   {
-    char signing_key_fingerprint[FINGERPRINT_LEN+1];
+    uint8_t signing_key_fingerprint[FINGERPRINT_LEN+1];
     if (crypto_pk_get_fingerprint(private_signing_key,
                                   signing_key_fingerprint, 0)<0) {
       log_warn(LD_BUG, "Unable to get fingerprint for signing key");
@@ -195,12 +195,12 @@ format_networkstatus_vote(crypto_pk_t *private_signing_key,
     }
 
     smartlist_add_asprintf(chunks, "directory-signature %s %s\n", fingerprint,
-                           signing_key_fingerprint);
+                           (char*)signing_key_fingerprint);
   }
 
   note_crypto_pk_op(SIGN_DIR);
   {
-    char *sig = router_get_dirobj_signature(digest, DIGEST_LEN,
+    char *sig = router_get_dirobj_signature((char*)digest, DIGEST_LEN,
                                             private_signing_key);
     if (!sig) {
       log_warn(LD_BUG, "Unable to sign networkstatus vote.");
@@ -2079,9 +2079,9 @@ networkstatus_compute_consensus(smartlist_t *votes,
 
   /* Add a signature. */
   {
-    char digest[DIGEST256_LEN];
-    char fingerprint[HEX_DIGEST_LEN+1];
-    char signing_key_fingerprint[HEX_DIGEST_LEN+1];
+    uint8_t digest[DIGEST256_LEN];
+    uint8_t fingerprint[HEX_DIGEST_LEN+1];
+    uint8_t signing_key_fingerprint[HEX_DIGEST_LEN+1];
     digest_algorithm_t digest_alg =
       flavor == FLAV_NS ? DIGEST_SHA1 : DIGEST_SHA256;
     size_t digest_len =
@@ -2092,7 +2092,8 @@ networkstatus_compute_consensus(smartlist_t *votes,
     smartlist_add(chunks, tor_strdup("directory-signature "));
 
     /* Compute the hash of the chunks. */
-    crypto_digest_smartlist(digest, digest_len, chunks, "", digest_alg);
+    crypto_digest_smartlist(digest, digest_len, chunks, 
+                            (const uint8_t *)"", digest_alg);
 
     /* Get the fingerprints */
     crypto_pk_get_fingerprint(identity_key, fingerprint, 0);
@@ -2108,7 +2109,7 @@ networkstatus_compute_consensus(smartlist_t *votes,
                    signing_key_fingerprint);
     }
     /* And the signature. */
-    if (!(signature = router_get_dirobj_signature(digest, digest_len,
+    if (!(signature = router_get_dirobj_signature((char*)digest, digest_len,
                                                   signing_key))) {
       log_warn(LD_BUG, "Couldn't sign consensus networkstatus.");
       goto done;
@@ -2117,7 +2118,7 @@ networkstatus_compute_consensus(smartlist_t *votes,
 
     if (legacy_id_key_digest && legacy_signing_key && consensus_method >= 3) {
       smartlist_add(chunks, tor_strdup("directory-signature "));
-      base16_encode(fingerprint, sizeof(fingerprint),
+      base16_encode((char*)fingerprint, sizeof(fingerprint),
                     legacy_id_key_digest, DIGEST_LEN);
       crypto_pk_get_fingerprint(legacy_signing_key,
                                 signing_key_fingerprint, 0);
@@ -2130,7 +2131,7 @@ networkstatus_compute_consensus(smartlist_t *votes,
                      signing_key_fingerprint);
       }
 
-      if (!(signature = router_get_dirobj_signature(digest, digest_len,
+      if (!(signature = router_get_dirobj_signature((char*)digest, digest_len,
                                                     legacy_signing_key))) {
         log_warn(LD_BUG, "Couldn't sign consensus networkstatus.");
         goto done;
@@ -2225,7 +2226,7 @@ networkstatus_add_detached_signatures(networkstatus_t *target,
       return -1;
     }
     for (alg = DIGEST_SHA1; alg < N_DIGEST_ALGORITHMS; ++alg) {
-      if (!tor_mem_is_zero(digests->d[alg], DIGEST256_LEN)) {
+      if (!tor_mem_is_zero((char *)digests->d[alg], DIGEST256_LEN)) {
         if (fast_memeq(target->digests.d[alg], digests->d[alg],
                        DIGEST256_LEN)) {
           ++n_matches;
@@ -2392,7 +2393,7 @@ networkstatus_get_detached_signatures(smartlist_t *consensuses)
     char d[HEX_DIGEST_LEN+1];
 
     base16_encode(d, sizeof(d),
-                  consensus_ns->digests.d[DIGEST_SHA1], DIGEST_LEN);
+                  (char*)consensus_ns->digests.d[DIGEST_SHA1], DIGEST_LEN);
     format_iso_time(va_buf, consensus_ns->valid_after);
     format_iso_time(fu_buf, consensus_ns->fresh_until);
     format_iso_time(vu_buf, consensus_ns->valid_until);
@@ -2417,9 +2418,9 @@ networkstatus_get_detached_signatures(smartlist_t *consensuses)
       char d[HEX_DIGEST256_LEN+1];
       const char *alg_name =
         crypto_digest_algorithm_get_name(alg);
-      if (tor_mem_is_zero(ns->digests.d[alg], DIGEST256_LEN))
+      if (tor_mem_is_zero((char*)ns->digests.d[alg], DIGEST256_LEN))
         continue;
-      base16_encode(d, sizeof(d), ns->digests.d[alg], DIGEST256_LEN);
+      base16_encode(d, sizeof(d), (char*)ns->digests.d[alg], DIGEST256_LEN);
       smartlist_add_asprintf(elements, "additional-digest %s %s %s\n",
                    flavor_name, alg_name, d);
     }
@@ -3149,7 +3150,7 @@ dirvote_compute_consensuses(void)
   smartlist_free(votestrings);
 
   {
-    char legacy_dbuf[DIGEST_LEN];
+    uint8_t legacy_dbuf[DIGEST_LEN];
     crypto_pk_t *legacy_sign=NULL;
     char *legacy_id_digest = NULL;
     int n_generated = 0;
@@ -3161,7 +3162,7 @@ dirvote_compute_consensuses(void)
           log_warn(LD_BUG,
                    "Unable to compute digest of legacy v3 identity key");
         } else {
-          legacy_id_digest = legacy_dbuf;
+          legacy_id_digest = (char *) legacy_dbuf;
         }
       }
     }

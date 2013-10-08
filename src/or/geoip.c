@@ -331,7 +331,7 @@ geoip_load_file(sa_family_t family, const char *filename)
     char buf[512];
     if (fgets(buf, (int)sizeof(buf), f) == NULL)
       break;
-    crypto_digest_add_bytes(geoip_digest_env, buf, strlen(buf));
+    crypto_digest_add_bytes(geoip_digest_env, (uint8_t*)buf, strlen(buf));
     /* FFFF track full country name. */
     geoip_parse_entry(buf, family);
   }
@@ -346,11 +346,11 @@ geoip_load_file(sa_family_t family, const char *filename)
      * which country. We do this for IPv4 only since that's what we
      * store in node->country. */
     refresh_all_country_info();
-    crypto_digest_get_digest(geoip_digest_env, geoip_digest, DIGEST_LEN);
+    crypto_digest_get_digest(geoip_digest_env, (uint8_t*)geoip_digest, DIGEST_LEN);
   } else {
     /* AF_INET6 */
     smartlist_sort(geoip_ipv6_entries, geoip_ipv6_compare_entries_);
-    crypto_digest_get_digest(geoip_digest_env, geoip6_digest, DIGEST_LEN);
+    crypto_digest_get_digest(geoip_digest_env, (uint8_t*)geoip6_digest, DIGEST_LEN);
   }
   crypto_digest_free(geoip_digest_env);
 

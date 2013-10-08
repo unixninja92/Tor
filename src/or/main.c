@@ -2601,7 +2601,7 @@ tor_cleanup(void)
 static int
 do_list_fingerprint(void)
 {
-  char buf[FINGERPRINT_LEN+1];
+  uint8_t buf[FINGERPRINT_LEN+1];
   crypto_pk_t *k;
   const char *nickname = get_options()->Nickname;
   if (!server_mode(get_options())) {
@@ -2633,14 +2633,14 @@ do_hash_password(void)
 {
 
   char output[256];
-  char key[S2K_SPECIFIER_LEN+DIGEST_LEN];
+  uint8_t key[S2K_SPECIFIER_LEN+DIGEST_LEN];
 
   crypto_rand(key, S2K_SPECIFIER_LEN-1);
   key[S2K_SPECIFIER_LEN-1] = (uint8_t)96; /* Hash 64 K of data. */
   secret_to_key(key+S2K_SPECIFIER_LEN, DIGEST_LEN,
-                get_options()->command_arg, strlen(get_options()->command_arg),
-                key);
-  base16_encode(output, sizeof(output), key, sizeof(key));
+                (uint8_t*)get_options()->command_arg, 
+                strlen(get_options()->command_arg), key);
+  base16_encode(output, sizeof(output), (char*)key, sizeof(key));
   printf("16:%s\n",output);
 }
 

@@ -2075,7 +2075,7 @@ crypto_dh_generate_public(crypto_dh_t *dh)
  * success, -1 on failure.  <b>pubkey_len</b> must be \>= DH_BYTES.
  */
 int
-crypto_dh_get_public(crypto_dh_t *dh, char *pubkey, size_t pubkey_len)
+crypto_dh_get_public(crypto_dh_t *dh, uint8_t *pubkey, size_t pubkey_len)
 {
   int bytes;
   tor_assert(dh);
@@ -2095,7 +2095,7 @@ crypto_dh_get_public(crypto_dh_t *dh, char *pubkey, size_t pubkey_len)
   }
 
   memset(pubkey, 0, pubkey_len);
-  BN_bn2bin(dh->dh->pub_key, (unsigned char*)(pubkey+(pubkey_len-bytes)));
+  BN_bn2bin(dh->dh->pub_key, (pubkey+(pubkey_len-bytes)));
 
   return 0;
 }
@@ -2149,10 +2149,10 @@ tor_check_dh_key(int severity, BIGNUM *bn)
  */
 ssize_t
 crypto_dh_compute_secret(int severity, crypto_dh_t *dh,
-                         const char *pubkey, size_t pubkey_len,
-                         char *secret_out, size_t secret_bytes_out)
+                         const uint8_t *pubkey, size_t pubkey_len,
+                         uint8_t *secret_out, size_t secret_bytes_out)
 {
-  char *secret_tmp = NULL;
+  uint8_t *secret_tmp = NULL;
   BIGNUM *pubkey_bn = NULL;
   size_t secret_len=0, secret_tmp_len=0;
   int result=0;
@@ -2160,8 +2160,7 @@ crypto_dh_compute_secret(int severity, crypto_dh_t *dh,
   tor_assert(secret_bytes_out/DIGEST_LEN <= 255);
   tor_assert(pubkey_len < INT_MAX);
 
-  if (!(pubkey_bn = BN_bin2bn((const unsigned char*)pubkey,
-                              (int)pubkey_len, NULL)))
+  if (!(pubkey_bn = BN_bin2bn(pubkey, (int)pubkey_len, NULL)))
     goto error;
   if (tor_check_dh_key(severity, pubkey_bn)<0) {
     /* Check for invalid public keys. */
@@ -2170,14 +2169,14 @@ crypto_dh_compute_secret(int severity, crypto_dh_t *dh,
   }
   secret_tmp_len = crypto_dh_get_bytes(dh);
   secret_tmp = tor_malloc(secret_tmp_len);
-  result = DH_compute_key((unsigned char*)secret_tmp, pubkey_bn, dh->dh);
+  result = DH_compute_key(secret_tmp, pubkey_bn, dh->dh);
   if (result < 0) {
     log_warn(LD_CRYPTO,"DH_compute_key() failed.");
     goto error;
   }
   secret_len = result;
-  if (crypto_expand_key_material_TAP((uint8_t*)secret_tmp, secret_len,
-                                     (uint8_t*)secret_out, secret_bytes_out)<0)
+  if (crypto_expand_key_material_TAP(secret_tmp, secret_len,
+                                     secret_out, secret_bytes_out)<0)
     goto error;
   secret_len = secret_bytes_out;
 

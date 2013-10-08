@@ -818,7 +818,7 @@ get_random_virtual_addr(const virtual_addr_conf_t *conf, tor_addr_t *addr_out)
   }
 
   /* Get an appropriate number of random bytes. */
-  crypto_rand((char*)bytes, total_bytes);
+  crypto_rand(bytes, total_bytes);
 
   /* Now replace the first "conf->bits" bits of 'bytes' with addr_bytes*/
   if (conf->bits >= 8)
@@ -851,10 +851,10 @@ addressmap_get_virtual_address(int type)
   tor_assert(addressmap);
 
   if (type == RESOLVED_TYPE_HOSTNAME) {
-    char rand[10];
+    uint8_t rand[10];
     do {
       crypto_rand(rand, sizeof(rand));
-      base32_encode(buf,sizeof(buf),rand,sizeof(rand));
+      base32_encode(buf,sizeof(buf),(const char *)rand,sizeof(rand));
       strlcat(buf, ".virtual", sizeof(buf));
     } while (strmap_get(addressmap, buf));
     return tor_strdup(buf);
