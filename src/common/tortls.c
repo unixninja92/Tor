@@ -651,7 +651,7 @@ tor_tls_create_certificate(crypto_pk_t *rsa,
     goto error;
 
   { /* our serial number is 8 random bytes. */
-    if (crypto_rand((char *)serial_tmp, sizeof(serial_tmp)) < 0)
+    if (crypto_rand(serial_tmp, sizeof(serial_tmp)) < 0)
       goto error;
     if (!(serial_number = BN_bin2bn(serial_tmp, sizeof(serial_tmp), NULL)))
       goto error;
@@ -825,7 +825,7 @@ tor_cert_new(X509 *x509_cert)
   cert->cert = x509_cert;
 
   crypto_digest_all(&cert->cert_digests,
-                    (char*)cert->encoded, cert->encoded_len);
+                    cert->encoded, cert->encoded_len);
 
   if ((pkey = X509_get_pubkey(x509_cert)) &&
       (rsa = EVP_PKEY_get1_RSA(pkey))) {
@@ -2706,7 +2706,7 @@ int
 tor_tls_get_tlssecrets(tor_tls_t *tls, uint8_t *secrets_out)
 {
 #define TLSSECRET_MAGIC "Tor V3 handshake TLS cross-certification"
-  char buf[128];
+  uint8_t buf[128];
   size_t len;
   tor_assert(tls);
   tor_assert(tls->ssl);
@@ -2720,8 +2720,8 @@ tor_tls_get_tlssecrets(tor_tls_t *tls, uint8_t *secrets_out)
   memcpy(buf + 32, tls->ssl->s3->server_random, 32);
   memcpy(buf + 64, TLSSECRET_MAGIC, strlen(TLSSECRET_MAGIC) + 1);
   len = 64 + strlen(TLSSECRET_MAGIC) + 1;
-  crypto_hmac_sha256((char*)secrets_out,
-                     (char*)tls->ssl->session->master_key,
+  crypto_hmac_sha256(secrets_out,
+                     tls->ssl->session->master_key,
                      tls->ssl->session->master_key_length,
                      buf, len);
   memwipe(buf, 0, sizeof(buf));

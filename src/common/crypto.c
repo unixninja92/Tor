@@ -1296,7 +1296,7 @@ crypto_pk_get_fingerprint(crypto_pk_t *pk, uint8_t *fp_out, int add_space)
   if (add_space) {
     crypto_add_spaces_to_fp(fp_out, FINGERPRINT_LEN+1, (uint8_t *)hexdigest);
   } else {
-    strncpy(fp_out, hexdigest, HEX_DIGEST_LEN+1);
+    strncpy((char*)fp_out, hexdigest, HEX_DIGEST_LEN+1);
   }
   return 0;
 }
@@ -1636,10 +1636,10 @@ crypto_digest_smartlist(uint8_t *digest_out, size_t len_out,
     d = crypto_digest_new();
   else
     d = crypto_digest256_new(alg);
-  SMARTLIST_FOREACH(lst, const uint8_t *, cp,
-                    crypto_digest_add_bytes(d, cp, strlen(cp)));
+  SMARTLIST_FOREACH(lst, const char *, cp,
+                    crypto_digest_add_bytes(d, (uint8_t*)cp, strlen(cp)));
   if (append)
-    crypto_digest_add_bytes(d, append, strlen(append));
+    crypto_digest_add_bytes(d, append, strlen((char*)append));
   crypto_digest_get_digest(d, digest_out, len_out);
   crypto_digest_free(d);
 }
