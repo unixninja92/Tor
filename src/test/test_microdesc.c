@@ -74,9 +74,12 @@ test_md_cache(void *data)
 
   tt_assert(!strcmpstart(test_md3_noannotation, "onion-key"));
 
-  crypto_digest256((uint8_t *)d1, (uint8_t *)test_md1, strlen(test_md1), DIGEST_SHA256);
-  crypto_digest256((uint8_t *)d2, (uint8_t *)test_md2, strlen(test_md1), DIGEST_SHA256);
-  crypto_digest256((uint8_t *)d3, (uint8_t *)test_md3_noannotation, strlen(test_md3_noannotation),
+  crypto_digest256((uint8_t *)d1, (uint8_t *)test_md1,
+                    strlen(test_md1), DIGEST_SHA256);
+  crypto_digest256((uint8_t *)d2, (uint8_t *)test_md2,
+                    strlen(test_md1), DIGEST_SHA256);
+  crypto_digest256((uint8_t *)d3, (uint8_t *)test_md3_noannotation,
+                    strlen(test_md3_noannotation),
                    DIGEST_SHA256);
 
   mc = get_microdesc_cache();

@@ -36,8 +36,8 @@
  */
 int
 onion_skin_TAP_create(crypto_pk_t *dest_router_key,
-                  crypto_dh_t **handshake_state_out,
-                  uint8_t *onion_skin_out) /* TAP_ONIONSKIN_CHALLENGE_LEN bytes */
+                crypto_dh_t **handshake_state_out,
+                uint8_t *onion_skin_out)/* TAP_ONIONSKIN_CHALLENGE_LEN bytes */
 {
   uint8_t challenge[DH_KEY_LEN];
   crypto_dh_t *dh = NULL;

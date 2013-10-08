@@ -1147,7 +1147,8 @@ handle_control_authenticate(control_connection_t *conn, uint32_t len,
     } else {
       SMARTLIST_FOREACH(sl, uint8_t *, expected,
       {
-        secret_to_key(received,DIGEST_LEN,(const uint8_t *)password,password_len,expected);
+        secret_to_key(received,DIGEST_LEN,(uint8_t *)password,
+                      password_len,expected);
         if (tor_memeq(expected+S2K_SPECIFIER_LEN, received, DIGEST_LEN))
           goto ok;
       });
@@ -3075,13 +3076,13 @@ handle_control_authchallenge(control_connection_t *conn, uint32_t len,
            server_nonce, SAFECOOKIE_SERVER_NONCE_LEN);
 
     crypto_hmac_sha256(server_hash,
-                       (const uint8_t *)SAFECOOKIE_SERVER_TO_CONTROLLER_CONSTANT,
+                       (uint8_t *)SAFECOOKIE_SERVER_TO_CONTROLLER_CONSTANT,
                        strlen(SAFECOOKIE_SERVER_TO_CONTROLLER_CONSTANT),
                        tmp,
                        tmp_len);
 
     crypto_hmac_sha256(client_hash,
-                       (const uint8_t *)SAFECOOKIE_CONTROLLER_TO_SERVER_CONSTANT,
+                       (uint8_t *)SAFECOOKIE_CONTROLLER_TO_SERVER_CONSTANT,
                        strlen(SAFECOOKIE_CONTROLLER_TO_SERVER_CONSTANT),
                        tmp,
                        tmp_len);

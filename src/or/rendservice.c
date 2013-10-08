@@ -1113,7 +1113,8 @@ rend_service_introduce(origin_circuit_t *circuit, const uint8_t *request,
   uint8_t need_rp_free = 0;
   /* XXX not handled yet */
   char buf[RELAY_PAYLOAD_SIZE];
-  uint8_t keys[DIGEST_LEN+CPATH_KEY_MATERIAL_LEN]; /* Holds KH, Df, Db, Kf, Kb */
+  /* Holds KH, Df, Db, Kf, Kb */
+  uint8_t keys[DIGEST_LEN+CPATH_KEY_MATERIAL_LEN];
   int i;
   crypto_dh_t *dh = NULL;
   origin_circuit_t *launched = NULL;
@@ -2645,7 +2646,8 @@ rend_service_rendezvous_has_opened(origin_circuit_t *circuit)
   /* Send the cell */
   if (relay_send_command_from_edge(0, TO_CIRCUIT(circuit),
                                    RELAY_COMMAND_RENDEZVOUS1,
-                                   (char*)buf, REND_COOKIE_LEN+DH_KEY_LEN+DIGEST_LEN,
+                                   (char*)buf,
+                                   REND_COOKIE_LEN+DH_KEY_LEN+DIGEST_LEN,
                                    circuit->cpath->prev)<0) {
     log_warn(LD_GENERAL, "Couldn't send RENDEZVOUS1 cell.");
     reason = END_CIRC_REASON_INTERNAL;

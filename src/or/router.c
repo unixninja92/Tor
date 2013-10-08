@@ -200,7 +200,8 @@ set_server_identity_key(crypto_pk_t *k)
 {
   crypto_pk_free(server_identitykey);
   server_identitykey = k;
-  crypto_pk_get_digest(server_identitykey, (uint8_t*)server_identitykey_digest);
+  crypto_pk_get_digest(server_identitykey,
+                         (uint8_t*)server_identitykey_digest);
 }
 
 /** Make sure that we have set up our identity keys to match or not match as
@@ -1950,7 +1951,8 @@ router_rebuild_descriptor(int force)
       strlen(ei->cache_info.signed_descriptor_body);
     router_get_extrainfo_hash(ei->cache_info.signed_descriptor_body,
                               ei->cache_info.signed_descriptor_len,
-                              (uint8_t*)ei->cache_info.signed_descriptor_digest);
+                              (uint8_t*)ei->
+                                          cache_info.signed_descriptor_digest);
   }
 
   /* Now finish the router descriptor. */
@@ -2431,7 +2433,7 @@ router_dump_router_to_string(routerinfo_t *router,
   /* Sign the descriptor */
   smartlist_add(chunks, tor_strdup("router-signature\n"));
 
-  crypto_digest_smartlist(digest, DIGEST_LEN, chunks, 
+  crypto_digest_smartlist(digest, DIGEST_LEN, chunks,
                           (uint8_t*)"", DIGEST_SHA1);
 
   note_crypto_pk_op(SIGN_RTR);

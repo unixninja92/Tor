@@ -62,7 +62,8 @@ rend_client_send_establish_rendezvous(origin_circuit_t *circ)
   tor_assert(circ->rend_data);
   log_info(LD_REND, "Sending an ESTABLISH_RENDEZVOUS cell");
 
-  if (crypto_rand((uint8_t*)circ->rend_data->rend_cookie, REND_COOKIE_LEN) < 0) {
+  if (crypto_rand((uint8_t*)circ->rend_data->rend_cookie,
+                   REND_COOKIE_LEN) < 0) {
     log_warn(LD_BUG, "Internal error: Couldn't produce random cookie.");
     circuit_mark_for_close(TO_CIRCUIT(circ), END_CIRC_REASON_INTERNAL);
     return -1;
@@ -288,7 +289,8 @@ rend_client_send_introduction(origin_circuit_t *introcirc,
     dh_offset = MAX_NICKNAME_LEN+1+REND_COOKIE_LEN;
   }
 
-  if (crypto_dh_get_public(cpath->rend_dh_handshake_state, (uint8_t*)tmp+dh_offset,
+  if (crypto_dh_get_public(cpath->rend_dh_handshake_state,
+                           (uint8_t*)tmp+dh_offset,
                            DH_KEY_LEN)<0) {
     log_warn(LD_BUG, "Internal error: couldn't extract g^x.");
     status = -2;
@@ -733,7 +735,8 @@ rend_client_refetch_v2_renddesc(const rend_data_t *rend_query)
     replicas_left_to_try[rand] = replicas_left_to_try[--tries_left];
 
     if (rend_compute_v2_desc_id(descriptor_id, rend_query->onion_address,
-                                (uint8_t*)(rend_query->auth_type == REND_STEALTH_AUTH ?
+                                (uint8_t*)(rend_query->auth_type ==
+                                    REND_STEALTH_AUTH ?
                                     rend_query->descriptor_cookie : NULL),
                                 time(NULL), chosen_replica) < 0) {
       log_warn(LD_REND, "Internal error: Computing v2 rendezvous "

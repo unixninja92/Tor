@@ -3296,8 +3296,8 @@ generate_v2_networkstatus_opinion(void)
   smartlist_add_asprintf(chunks, "directory-signature %s\n",
                          options->Nickname);
 
-  crypto_digest_smartlist(digest, DIGEST_LEN, chunks, 
-                          (const uint8_t*)"", DIGEST_SHA1);
+  crypto_digest_smartlist(digest, DIGEST_LEN, chunks,
+                          (uint8_t*)"", DIGEST_SHA1);
 
   note_crypto_pk_op(SIGN_DIR);
   {

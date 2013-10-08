@@ -259,7 +259,8 @@ rend_encrypt_v2_intro_points_basic(uint8_t **encrypted_out,
 {
   int r = -1, i, pos, enclen, client_blocks;
   size_t len, client_entries_len;
-  uint8_t *enc = NULL, iv[CIPHER_IV_LEN], *client_part = NULL, session_key[CIPHER_KEY_LEN];
+  uint8_t *enc = NULL, iv[CIPHER_IV_LEN],
+          *client_part = NULL, session_key[CIPHER_KEY_LEN];
   smartlist_t *encrypted_session_keys = NULL;
   crypto_digest_t *digest;
   crypto_cipher_t *cipher;
@@ -561,7 +562,8 @@ rend_encode_v2_descriptors(smartlist_t *descs_out,
     base32_encode(secret_id_part_base32, sizeof(secret_id_part_base32),
                   (char*)secret_id_part, DIGEST_LEN);
     /* Calculate descriptor ID. */
-    rend_get_descriptor_id_bytes((uint8_t *)enc->desc_id, service_id, secret_id_part);
+    rend_get_descriptor_id_bytes((uint8_t *)enc->desc_id, service_id,
+                                  secret_id_part);
     base32_encode(desc_id_base32, sizeof(desc_id_base32),
                   enc->desc_id, DIGEST_LEN);
     /* PEM-encode the public key */
@@ -755,7 +757,8 @@ rend_get_service_id(crypto_pk_t *pk, char *out)
   tor_assert(pk);
   if (crypto_pk_get_digest(pk, buf) < 0)
     return -1;
-  base32_encode(out, REND_SERVICE_ID_LEN_BASE32+1, (char*)buf, REND_SERVICE_ID_LEN);
+  base32_encode(out, REND_SERVICE_ID_LEN_BASE32+1,
+                (char*)buf, REND_SERVICE_ID_LEN);
   return 0;
 }
 
@@ -1279,7 +1282,8 @@ rend_cache_store_v2_desc_as_client(const char *desc,
   tor_assert(rend_cache);
   tor_assert(desc);
   /* Parse the descriptor. */
-  if (rend_parse_v2_service_descriptor(&parsed, desc_id, (char**)&intro_content,
+  if (rend_parse_v2_service_descriptor(&parsed, desc_id,
+                                       (char**)&intro_content,
                                        &intro_size, &encoded_size,
                                        &next_desc, desc) < 0) {
     log_warn(LD_REND, "Could not parse descriptor.");
@@ -1309,7 +1313,8 @@ rend_cache_store_v2_desc_as_client(const char *desc,
       size_t ipos_decrypted_size;
       if (rend_decrypt_introduction_points(&ipos_decrypted,
                                            &ipos_decrypted_size,
-                                           (uint8_t*)rend_query->descriptor_cookie,
+                                           (uint8_t*)rend_query->
+                                                      descriptor_cookie,
                                            intro_content,
                                            intro_size) < 0) {
         log_warn(LD_REND, "Failed to decrypt introduction points. We are "
@@ -1322,7 +1327,8 @@ rend_cache_store_v2_desc_as_client(const char *desc,
         intro_size = ipos_decrypted_size;
       }
     }
-    n_intro_points = rend_parse_introduction_points(parsed, (char*)intro_content,
+    n_intro_points = rend_parse_introduction_points(parsed,
+                                                    (char*)intro_content,
                                                     intro_size);
     if (n_intro_points <= 0) {
       log_warn(LD_REND, "Failed to parse introduction points. Either the "

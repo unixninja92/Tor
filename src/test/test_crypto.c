@@ -288,7 +288,8 @@ test_crypto_sha(void)
 
   /* Case quick-brown (wikipedia) */
   crypto_hmac_sha256(digest, (uint8_t*)"key", 3,
-                     (uint8_t*)"The quick brown fox jumps over the lazy dog", 43);
+                     (uint8_t*)"The quick brown fox jumps over the lazy dog",
+                      43);
   test_streq(hex_str((char*)digest, 32),
            "F7BC83F430538424B13298E6AA6FB143EF4D59A14946175997479DBC2D1A3CD8");
 
@@ -301,7 +302,8 @@ test_crypto_sha(void)
 
   /* "Test Case 2" from RFC 4231 */
   memset(key, 0x0b, 20);
-  crypto_hmac_sha256(digest, (uint8_t*)"Jefe", 4, (uint8_t*)"what do ya want for nothing?", 28);
+  crypto_hmac_sha256(digest, (uint8_t*)"Jefe", 4,
+                     (uint8_t*)"what do ya want for nothing?", 28);
   test_memeq_hex(digest,
                  "5bdcc146bf60754e6a042426089575c7"
                  "5a003f089d2739839dec58b964ec3843");
@@ -332,7 +334,8 @@ test_crypto_sha(void)
   /* "Test case 6" from RFC 4231 */
   memset(key, 0xaa, 131);
   crypto_hmac_sha256(digest, key, 131,
-                     (uint8_t*)"Test Using Larger Than Block-Size Key - Hash Key First",
+                     (uint8_t*)
+                     "Test Using Larger Than Block-Size Key - Hash Key First",
                      54);
   test_memeq_hex(digest,
                  "60e431591ee0b67f0d8a26aacbf5b77f"
@@ -625,8 +628,10 @@ test_crypto_formats(void)
   test_memeq(data2, "\xf0\xd6\x78\xaf\xfc\x00\x01\x00",8);
 
   /* now try some failing base16 decodes */
-  test_eq(-1, base16_decode((char*)data2, 8, (char*)data1, 15)); /* odd input len */
-  test_eq(-1, base16_decode((char*)data2, 7, (char*)data1, 16)); /* dest too short */
+     /* odd input len */
+  test_eq(-1, base16_decode((char*)data2, 8, (char*)data1, 15));
+     /* dest too short */
+  test_eq(-1, base16_decode((char*)data2, 7, (char*)data1, 16));
   strlcpy((char*)data1, "f0dz!8affc000100", 1024);
   test_eq(-1, base16_decode((char*)data2, 8, (char*)data1, 16));
 

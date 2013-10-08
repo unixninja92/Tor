@@ -2638,7 +2638,7 @@ do_hash_password(void)
   crypto_rand(key, S2K_SPECIFIER_LEN-1);
   key[S2K_SPECIFIER_LEN-1] = (uint8_t)96; /* Hash 64 K of data. */
   secret_to_key(key+S2K_SPECIFIER_LEN, DIGEST_LEN,
-                (uint8_t*)get_options()->command_arg, 
+                (uint8_t*)get_options()->command_arg,
                 strlen(get_options()->command_arg), key);
   base16_encode(output, sizeof(output), (char*)key, sizeof(key));
   printf("16:%s\n",output);

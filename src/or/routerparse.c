@@ -734,7 +734,8 @@ router_get_dirobj_signature(const uint8_t *digest,
  * failure.
  */
 int
-router_append_dirobj_signature(char *buf, size_t buf_len, const uint8_t *digest,
+router_append_dirobj_signature(char *buf, size_t buf_len,
+                               const uint8_t *digest,
                                size_t digest_len, crypto_pk_t *private_key)
 {
   size_t sig_len, s_len;
@@ -1655,7 +1656,8 @@ authority_cert_parse_from_string(const char *s, const char **end_of_string)
   tor_assert(tok->key);
   cert->signing_key = tok->key;
   tok->key = NULL;
-  if (crypto_pk_get_digest(cert->signing_key, (uint8_t*)cert->signing_key_digest))
+  if (crypto_pk_get_digest(cert->signing_key,
+                           (uint8_t*)cert->signing_key_digest))
     goto err;
 
   tok = find_by_keyword(tokens, K_DIR_IDENTITY_KEY);
@@ -4350,7 +4352,8 @@ microdescs_parse_from_string(const char *s, const char *eos,
       md->ipv6_exit_policy = parse_short_policy(tok->args[0]);
     }
 
-    crypto_digest256((uint8_t*)md->digest, (uint8_t*)md->body, md->bodylen, DIGEST_SHA256);
+    crypto_digest256((uint8_t*)md->digest,
+                     (uint8_t*)md->body, md->bodylen, DIGEST_SHA256);
 
     smartlist_add(result, md);
 

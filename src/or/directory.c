@@ -3358,7 +3358,8 @@ directory_handle_command_get(dir_connection_t *conn, const char *headers,
 
     header = http_get_header(headers, "Authorization: Basic ");
     if (header)
-      crypto_digest256(digest, (uint8_t*)header, strlen(header), DIGEST_SHA256);
+      crypto_digest256(digest, (uint8_t*)header,
+                       strlen(header), DIGEST_SHA256);
 
     /* now make sure the password is there and right */
     if (!header ||

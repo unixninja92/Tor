@@ -275,9 +275,11 @@ test_ext_or_cookie_auth(void *arg)
   memcpy(server_hash_input+46+32, reply+32, 32);
   memcpy(client_hash_input+46+32, reply+32, 32);
   /* Check the HMACs are correct... */
-  crypto_hmac_sha256(hmac1, ext_or_auth_cookie, 32, (uint8_t*)server_hash_input,
+  crypto_hmac_sha256(hmac1, ext_or_auth_cookie, 32,
+                     (uint8_t*)server_hash_input,
                      46+32+32);
-  crypto_hmac_sha256(hmac2, ext_or_auth_cookie, 32, (uint8_t*)client_hash_input,
+  crypto_hmac_sha256(hmac2, ext_or_auth_cookie, 32,
+                     (uint8_t*)client_hash_input,
                      46+32+32);
   test_memeq(hmac1, reply, 32);
   test_memeq(hmac2, client_hash, 32);
@@ -292,9 +294,11 @@ test_ext_or_cookie_auth(void *arg)
   memcpy(server_hash_input+46+32, reply2+32, 32);
   memcpy(client_hash_input+46+32, reply2+32, 32);
   /* Check the HMACs are correct... */
-  crypto_hmac_sha256(hmac1, ext_or_auth_cookie, 32, (uint8_t*)server_hash_input,
+  crypto_hmac_sha256(hmac1, ext_or_auth_cookie, 32,
+                     (uint8_t*)server_hash_input,
                      46+32+32);
-  crypto_hmac_sha256(hmac2, ext_or_auth_cookie, 32, (uint8_t*)client_hash_input,
+  crypto_hmac_sha256(hmac2, ext_or_auth_cookie, 32,
+                     (uint8_t*)client_hash_input,
                      46+32+32);
   test_memeq(hmac1, reply2, 32);
   test_memeq(hmac2, client_hash2, 32);
