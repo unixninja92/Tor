@@ -184,7 +184,7 @@ format_networkstatus_vote(crypto_pk_t *private_signing_key,
   /* The digest includes everything up through the space after
    * directory-signature.  (Yuck.) */
   crypto_digest_smartlist(digest, DIGEST_LEN, chunks,
-                          (uint8_t *)"directory-signature ", DIGEST_SHA1);
+                          "directory-signature ", DIGEST_SHA1);
 
   {
     char signing_key_fingerprint[FINGERPRINT_LEN+1];
@@ -2092,8 +2092,7 @@ networkstatus_compute_consensus(smartlist_t *votes,
     smartlist_add(chunks, tor_strdup("directory-signature "));
 
     /* Compute the hash of the chunks. */
-    crypto_digest_smartlist(digest, digest_len, chunks,
-                            (uint8_t *)"", digest_alg);
+    crypto_digest_smartlist(digest, digest_len, chunks, "", digest_alg);
 
     /* Get the fingerprints */
     crypto_pk_get_fingerprint(identity_key, fingerprint, 0);

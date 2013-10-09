@@ -208,7 +208,7 @@ int crypto_digest_all(digests_t *ds_out, const uint8_t *m, size_t len);
 struct smartlist_t;
 void crypto_digest_smartlist(uint8_t *digest_out, size_t len_out,
                              const struct smartlist_t *lst,
-                             const uint8_t *append,
+                             const char *append,
                              digest_algorithm_t alg);
 const char *crypto_digest_algorithm_get_name(digest_algorithm_t alg);
 int crypto_digest_algorithm_parse_name(const char *name);

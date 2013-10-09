@@ -1628,7 +1628,7 @@ crypto_digest_assign(crypto_digest_t *into,
  * <b>out_len</b> must be \<= DIGEST256_LEN. */
 void
 crypto_digest_smartlist(uint8_t *digest_out, size_t len_out,
-                        const smartlist_t *lst, const uint8_t *append,
+                        const smartlist_t *lst, const char *append,
                         digest_algorithm_t alg)
 {
   crypto_digest_t *d;
@@ -1639,7 +1639,7 @@ crypto_digest_smartlist(uint8_t *digest_out, size_t len_out,
   SMARTLIST_FOREACH(lst, const char *, cp,
                     crypto_digest_add_bytes(d, (uint8_t*)cp, strlen(cp)));
   if (append)
-    crypto_digest_add_bytes(d, append, strlen((char*)append));
+    crypto_digest_add_bytes(d, (uint8_t*)append, strlen(append));
   crypto_digest_get_digest(d, digest_out, len_out);
   crypto_digest_free(d);
 }

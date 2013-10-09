@@ -2433,8 +2433,7 @@ router_dump_router_to_string(routerinfo_t *router,
   /* Sign the descriptor */
   smartlist_add(chunks, tor_strdup("router-signature\n"));
 
-  crypto_digest_smartlist(digest, DIGEST_LEN, chunks,
-                          (uint8_t*)"", DIGEST_SHA1);
+  crypto_digest_smartlist(digest, DIGEST_LEN, chunks, "", DIGEST_SHA1);
 
   note_crypto_pk_op(SIGN_RTR);
   {
