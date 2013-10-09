@@ -162,7 +162,7 @@ test_dir_formats(void)
           "published 1970-01-01 00:00:00\n"
           "fingerprint ", sizeof(buf2));
   test_assert(!crypto_pk_get_fingerprint(pk2, fingerprint, 1));
-  strlcat(buf2, (char*)fingerprint, sizeof(buf2));
+  strlcat(buf2, fingerprint, sizeof(buf2));
   strlcat(buf2, "\nuptime 0\n"
   /* XXX the "0" above is hard-coded, but even if we made it reflect
    * uptime, that still wouldn't make it right, because the two
@@ -206,7 +206,7 @@ test_dir_formats(void)
           "published 1970-01-01 00:00:05\n"
           "fingerprint ", sizeof(buf2));
   test_assert(!crypto_pk_get_fingerprint(pk1, fingerprint, 1));
-  strlcat(buf2, (char*)fingerprint, sizeof(buf2));
+  strlcat(buf2, fingerprint, sizeof(buf2));
   strlcat(buf2, "\nuptime 0\n"
           "bandwidth 3000 3000 3000\n", sizeof(buf2));
   strlcat(buf2, "onion-key\n", sizeof(buf2));
