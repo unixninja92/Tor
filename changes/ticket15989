@@ -6,3 +6,4 @@
   o Minor bugfixe (accounting):
     - The max bandwidth when using AccountRule sum
       is now correctly logged.
+      Patch from "unixninja92".
