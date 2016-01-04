@@ -1014,7 +1014,14 @@ getinfo_helper_accounting(control_connection_t *conn,
     else
       *answer = tor_strdup("awake");
   } else if (!strcmp(question, "accounting/bytes")) {
-    tor_asprintf(answer, U64_FORMAT" "U64_FORMAT,
+    if (get_options()->AccountingRule == ACCT_IN) {
+      tor_asprintf(answer, U64_FORMAT,
+                 U64_PRINTF_ARG(n_bytes_read_in_interval));
+    else if (get_options()->AccountingRule == ACCT_OUT) {
+      tor_asprintf(answer, U64_FORMAT,
+                 U64_PRINTF_ARG(n_bytes_written_in_interval));
+    else
+      tor_asprintf(answer, U64_FORMAT" "U64_FORMAT,
                  U64_PRINTF_ARG(n_bytes_read_in_interval),
                  U64_PRINTF_ARG(n_bytes_written_in_interval));
   } else if (!strcmp(question, "accounting/bytes-left")) {
@@ -1030,14 +1037,12 @@ getinfo_helper_accounting(control_connection_t *conn,
       uint64_t read_left = 0;
       if (n_bytes_read_in_interval < limit)
         read_left = limit - n_bytes_read_in_interval;
-      tor_asprintf(answer, U64_FORMAT" "U64_FORMAT,
-                   U64_PRINTF_ARG(read_left), U64_PRINTF_ARG(read_left));
+      tor_asprintf(answer, U64_FORMAT, U64_PRINTF_ARG(read_left));
     } else if (get_options()->AccountingRule == ACCT_OUT) {
       uint64_t write_left = 0;
       if (n_bytes_written_in_interval < limit)
         write_left = limit - n_bytes_written_in_interval;
-      tor_asprintf(answer, U64_FORMAT" "U64_FORMAT,
-                   U64_PRINTF_ARG(write_left), U64_PRINTF_ARG(write_left));
+      tor_asprintf(answer, U64_FORMAT, U64_PRINTF_ARG(write_left));
     } else {
       uint64_t read_left = 0, write_left = 0;
       if (n_bytes_read_in_interval < limit)
