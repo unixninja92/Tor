@@ -171,8 +171,6 @@ log_accounting(const time_t now, const or_options_t *options)
   time_t interval_end = accounting_get_end_time();
   char end_buf[ISO_TIME_LEN + 1];
   char *remaining = NULL;
-  if (options->AccountingRule == ACCT_SUM)
-    acc_bytes *= 2;
   acc_max = bytes_to_usage(acc_bytes);
   format_local_iso_time(end_buf, interval_end);
   remaining = secs_to_uptime(interval_end - now);
