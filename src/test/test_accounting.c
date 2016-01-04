@@ -86,7 +86,7 @@ test_accounting_limits(void *arg)
   fake_time += 1;
   consider_hibernation(fake_time);
   tor_assert(we_are_hibernating() == 1);
-  
+
   goto done;
  done:
   NS_UNMOCK(get_or_state);
