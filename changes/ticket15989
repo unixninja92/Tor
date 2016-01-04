@@ -1,0 +1,4 @@
+  o Minor enhancement (accounting):
+    - Added two modes to AccountingRule in torrc for
+      limiting just input or just output.
+      Closes ticket 15989; patch from "unixninja92".
