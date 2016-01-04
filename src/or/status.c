@@ -164,7 +164,9 @@ log_accounting(const time_t now, const or_options_t *options)
   or_state_t *state = get_or_state();
   char *acc_rcvd = bytes_to_usage(state->AccountingBytesReadInInterval);
   char *acc_sent = bytes_to_usage(state->AccountingBytesWrittenInInterval);
+  char *acc_used = bytes_to_usage(get_accounting_bytes());
   uint64_t acc_bytes = options->AccountingMax;
+  char *acc_rule;
   char *acc_max;
   time_t interval_end = accounting_get_end_time();
   char end_buf[ISO_TIME_LEN + 1];
@@ -174,25 +176,25 @@ log_accounting(const time_t now, const or_options_t *options)
   acc_max = bytes_to_usage(acc_bytes);
   format_local_iso_time(end_buf, interval_end);
   remaining = secs_to_uptime(interval_end - now);
+  switch (options->AccountingRule) {
+    case ACCT_SUM: acc_rule = "sum";
+    break;
+    case ACCT_IN: acc_rule = "in";
+    break;
+    case ACCT_OUT: acc_rule = "out";
+    break;
+    default: acc_rule = "max";
+    break;
+  }
 
-  if (options->AccountingRule == ACCT_IN)
-    log_notice(LD_HEARTBEAT, "Heartbeat: Accounting enabled. "
-      "Received: %s / %s. The current accounting interval "
-      "ends on %s, in %s.",
-      acc_rcvd, acc_max, end_buf, remaining);
-  else if (options->AccountingRule == ACCT_OUT)
-    log_notice(LD_HEARTBEAT, "Heartbeat: Accounting enabled. "
-      "Sent: %s / %s. The current accounting interval ends "
-      "on %s, in %s.",
-      acc_sent, acc_max, end_buf, remaining);
-  else
   log_notice(LD_HEARTBEAT, "Heartbeat: Accounting enabled. "
-      "Sent: %s / %s, Received: %s / %s. The "
+      "Sent: %s, Received: %s, Used: %s / %s, Rule: %s. The "
       "current accounting interval ends on %s, in %s.",
-      acc_sent, acc_max, acc_rcvd, acc_max, end_buf, remaining);
+      acc_sent, acc_rcvd, acc_used, acc_max, acc_rule, end_buf, remaining);
 
   tor_free(acc_rcvd);
   tor_free(acc_sent);
+  tor_free(acc_used);
   tor_free(acc_max);
   tor_free(remaining);
 }
