@@ -175,12 +175,12 @@ log_accounting(const time_t now, const or_options_t *options)
   format_local_iso_time(end_buf, interval_end);
   remaining = secs_to_uptime(interval_end - now);
 
-  if(options->AccountingRule == ACCT_IN)
+  if (options->AccountingRule == ACCT_IN)
     log_notice(LD_HEARTBEAT, "Heartbeat: Accounting enabled. "
       "Received: %s / %s. The current accounting interval "
       "ends on %s, in %s.",
       acc_rcvd, acc_max, end_buf, remaining);
-  else if(options->AccountingRule == ACCT_OUT)
+  else if (options->AccountingRule == ACCT_OUT)
     log_notice(LD_HEARTBEAT, "Heartbeat: Accounting enabled. "
       "Sent: %s / %s. The current accounting interval ends "
       "on %s, in %s.",

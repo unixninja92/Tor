@@ -1017,13 +1017,14 @@ getinfo_helper_accounting(control_connection_t *conn,
     if (get_options()->AccountingRule == ACCT_IN) {
       tor_asprintf(answer, U64_FORMAT,
                  U64_PRINTF_ARG(n_bytes_read_in_interval));
-    else if (get_options()->AccountingRule == ACCT_OUT) {
+    } else if (get_options()->AccountingRule == ACCT_OUT) {
       tor_asprintf(answer, U64_FORMAT,
                  U64_PRINTF_ARG(n_bytes_written_in_interval));
-    else
+    } else {
       tor_asprintf(answer, U64_FORMAT" "U64_FORMAT,
                  U64_PRINTF_ARG(n_bytes_read_in_interval),
                  U64_PRINTF_ARG(n_bytes_written_in_interval));
+    }
   } else if (!strcmp(question, "accounting/bytes-left")) {
     uint64_t limit = get_options()->AccountingMax;
     if (get_options()->AccountingRule == ACCT_SUM) {
