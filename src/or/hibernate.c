@@ -417,6 +417,10 @@ get_accounting_bytes(void)
 {
   if (get_options()->AccountingRule == ACCT_SUM)
     return n_bytes_read_in_interval+n_bytes_written_in_interval;
+  else if (get_options()->AccountingRule == ACCT_IN)
+    return n_bytes_read_in_interval;
+  else if (get_options()->AccountingRule == ACCT_OUT)
+    return n_bytes_written_in_interval;
   else
     return MAX(n_bytes_read_in_interval, n_bytes_written_in_interval);
 }
@@ -1022,6 +1026,18 @@ getinfo_helper_accounting(control_connection_t *conn,
         total_left = limit - total_bytes;
       tor_asprintf(answer, U64_FORMAT" "U64_FORMAT,
                    U64_PRINTF_ARG(total_left), U64_PRINTF_ARG(total_left));
+    } else if (get_options()->AccountingRule == ACCT_IN) {
+      uint64_t read_left = 0;
+      if (n_bytes_read_in_interval < limit)
+        read_left = limit - n_bytes_read_in_interval;
+      tor_asprintf(answer, U64_FORMAT" "U64_FORMAT,
+                   U64_PRINTF_ARG(read_left), U64_PRINTF_ARG(read_left));
+    } else if (get_options()->AccountingRule == ACCT_OUT) {
+      uint64_t write_left = 0;
+      if (n_bytes_written_in_interval < limit)
+        write_left = limit - n_bytes_written_in_interval;
+      tor_asprintf(answer, U64_FORMAT" "U64_FORMAT,
+                   U64_PRINTF_ARG(write_left), U64_PRINTF_ARG(write_left));
     } else {
       uint64_t read_left = 0, write_left = 0;
       if (n_bytes_read_in_interval < limit)
