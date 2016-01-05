@@ -173,8 +173,8 @@ log_accounting(const time_t now, const or_options_t *options)
   acc_max = bytes_to_usage(acc_bytes);
   format_local_iso_time(end_buf, interval_end);
   remaining = secs_to_uptime(interval_end - now);
-  
-  static char *acc_rule;
+
+  const char *acc_rule;
   switch (options->AccountingRule) {
     case ACCT_MAX: acc_rule = "max";
     break;
