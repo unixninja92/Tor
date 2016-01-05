@@ -166,7 +166,6 @@ log_accounting(const time_t now, const or_options_t *options)
   char *acc_sent = bytes_to_usage(state->AccountingBytesWrittenInInterval);
   char *acc_used = bytes_to_usage(get_accounting_bytes());
   uint64_t acc_bytes = options->AccountingMax;
-  char *acc_rule;
   char *acc_max;
   time_t interval_end = accounting_get_end_time();
   char end_buf[ISO_TIME_LEN + 1];
@@ -174,12 +173,16 @@ log_accounting(const time_t now, const or_options_t *options)
   acc_max = bytes_to_usage(acc_bytes);
   format_local_iso_time(end_buf, interval_end);
   remaining = secs_to_uptime(interval_end - now);
+  
+  static char *acc_rule;
   switch (options->AccountingRule) {
+    case ACCT_MAX: acc_rule = "max";
+    break;
     case ACCT_SUM: acc_rule = "sum";
     break;
-    case ACCT_IN: acc_rule = "in";
-    break;
     case ACCT_OUT: acc_rule = "out";
+    break;
+    case ACCT_IN: acc_rule = "in";
     break;
     default: acc_rule = "max";
     break;

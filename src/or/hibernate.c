@@ -412,7 +412,7 @@ configure_accounting(time_t now)
 
 /** Return the relevant number of bytes sent/received this interval
  * based on the set AccountingRule */
-static uint64_t
+uint64_t
 get_accounting_bytes(void)
 {
   if (get_options()->AccountingRule == ACCT_SUM)
