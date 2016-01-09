@@ -110,7 +110,7 @@ typedef enum {
  * once.
  **/
 typedef struct {
-  char d[N_DIGEST_ALGORITHMS][DIGEST512_LEN];
+  uint8_t d[N_DIGEST_ALGORITHMS][DIGEST512_LEN];
 } digests_t;
 
 typedef struct crypto_pk_t crypto_pk_t;
@@ -124,8 +124,8 @@ const char * crypto_openssl_get_version_str(void);
 const char * crypto_openssl_get_header_version_str(void);
 int crypto_early_init(void) ATTR_WUR;
 int crypto_global_init(int hardwareAccel,
-                       const char *accelName,
-                       const char *accelPath) ATTR_WUR;
+                       const uint8_t *accelName,
+                       const uint8_t *accelPath) ATTR_WUR;
 void crypto_thread_cleanup(void);
 int crypto_global_cleanup(void);
 
@@ -134,8 +134,8 @@ MOCK_DECL(crypto_pk_t *,crypto_pk_new,(void));
 void crypto_pk_free(crypto_pk_t *env);
 
 void crypto_set_tls_dh_prime(void);
-crypto_cipher_t *crypto_cipher_new(const char *key);
-crypto_cipher_t *crypto_cipher_new_with_iv(const char *key, const char *iv);
+crypto_cipher_t *crypto_cipher_new(const uint8_t *key);
+crypto_cipher_t *crypto_cipher_new_with_iv(const uint8_t *key, const uint8_t *iv);
 void crypto_cipher_free(crypto_cipher_t *env);
 
 /* public key crypto */
@@ -166,61 +166,61 @@ crypto_pk_t *crypto_pk_copy_full(crypto_pk_t *orig);
 int crypto_pk_key_is_private(const crypto_pk_t *key);
 int crypto_pk_public_exponent_ok(crypto_pk_t *env);
 
-int crypto_pk_public_encrypt(crypto_pk_t *env, char *to, size_t tolen,
-                             const char *from, size_t fromlen, int padding);
-int crypto_pk_private_decrypt(crypto_pk_t *env, char *to, size_t tolen,
-                              const char *from, size_t fromlen,
+int crypto_pk_public_encrypt(crypto_pk_t *env, uint8_t *to, size_t tolen,
+                             const uint8_t *from, size_t fromlen, int padding);
+int crypto_pk_private_decrypt(crypto_pk_t *env, uint8_t *to, size_t tolen,
+                              const uint8_t *from, size_t fromlen,
                               int padding, int warnOnFailure);
-int crypto_pk_public_checksig(const crypto_pk_t *env, char *to, size_t tolen,
-                              const char *from, size_t fromlen);
-int crypto_pk_public_checksig_digest(crypto_pk_t *env, const char *data,
-                               size_t datalen, const char *sig, size_t siglen);
-int crypto_pk_private_sign(const crypto_pk_t *env, char *to, size_t tolen,
-                           const char *from, size_t fromlen);
-int crypto_pk_private_sign_digest(crypto_pk_t *env, char *to, size_t tolen,
-                                  const char *from, size_t fromlen);
-int crypto_pk_public_hybrid_encrypt(crypto_pk_t *env, char *to,
+int crypto_pk_public_checksig(const crypto_pk_t *env, uint8_t *to, size_t tolen,
+                              const uint8_t *from, size_t fromlen);
+int crypto_pk_public_checksig_digest(crypto_pk_t *env, const uint8_t *data,
+                               size_t datalen, const uint8_t *sig, size_t siglen);
+int crypto_pk_private_sign(const crypto_pk_t *env, uint8_t *to, size_t tolen,
+                           const uint8_t *from, size_t fromlen);
+int crypto_pk_private_sign_digest(crypto_pk_t *env, uint8_t *to, size_t tolen,
+                                  const uint8_t *from, size_t fromlen);
+int crypto_pk_public_hybrid_encrypt(crypto_pk_t *env, uint8_t *to,
                                     size_t tolen,
-                                    const char *from, size_t fromlen,
+                                    const uint8_t *from, size_t fromlen,
                                     int padding, int force);
-int crypto_pk_private_hybrid_decrypt(crypto_pk_t *env, char *to,
+int crypto_pk_private_hybrid_decrypt(crypto_pk_t *env, uint8_t *to,
                                      size_t tolen,
-                                     const char *from, size_t fromlen,
+                                     const uint8_t *from, size_t fromlen,
                                      int padding, int warnOnFailure);
 
-int crypto_pk_asn1_encode(crypto_pk_t *pk, char *dest, size_t dest_len);
-crypto_pk_t *crypto_pk_asn1_decode(const char *str, size_t len);
-int crypto_pk_get_digest(const crypto_pk_t *pk, char *digest_out);
+int crypto_pk_asn1_encode(crypto_pk_t *pk, uint8_t *dest, size_t dest_len);
+crypto_pk_t *crypto_pk_asn1_decode(const uint8_t *str, size_t len);
+int crypto_pk_get_digest(const crypto_pk_t *pk, uint8_t *digest_out);
 int crypto_pk_get_all_digests(crypto_pk_t *pk, digests_t *digests_out);
-int crypto_pk_get_fingerprint(crypto_pk_t *pk, char *fp_out,int add_space);
-int crypto_pk_get_hashed_fingerprint(crypto_pk_t *pk, char *fp_out);
+int crypto_pk_get_fingerprint(crypto_pk_t *pk, uint8_t *fp_out,int add_space);
+int crypto_pk_get_hashed_fingerprint(crypto_pk_t *pk, uint8_t *fp_out);
 
-int crypto_pk_base64_encode(const crypto_pk_t *pk, char **priv_out);
-crypto_pk_t *crypto_pk_base64_decode(const char *str, size_t len);
+int crypto_pk_base64_encode(const crypto_pk_t *pk, uint8_t **priv_out);
+crypto_pk_t *crypto_pk_base64_decode(const uint8_t *str, size_t len);
 
 /* symmetric crypto */
-const char *crypto_cipher_get_key(crypto_cipher_t *env);
+const uint8_t *crypto_cipher_get_key(crypto_cipher_t *env);
 
-int crypto_cipher_encrypt(crypto_cipher_t *env, char *to,
-                          const char *from, size_t fromlen);
-int crypto_cipher_decrypt(crypto_cipher_t *env, char *to,
-                          const char *from, size_t fromlen);
-int crypto_cipher_crypt_inplace(crypto_cipher_t *env, char *d, size_t len);
+int crypto_cipher_encrypt(crypto_cipher_t *env, uint8_t *to,
+                          const uint8_t *from, size_t fromlen);
+int crypto_cipher_decrypt(crypto_cipher_t *env, uint8_t *to,
+                          const uint8_t *from, size_t fromlen);
+int crypto_cipher_crypt_inplace(crypto_cipher_t *env, uint8_t *d, size_t len);
 
-int crypto_cipher_encrypt_with_iv(const char *key,
-                                  char *to, size_t tolen,
-                                  const char *from, size_t fromlen);
-int crypto_cipher_decrypt_with_iv(const char *key,
-                                  char *to, size_t tolen,
-                                  const char *from, size_t fromlen);
+int crypto_cipher_encrypt_with_iv(const uint8_t *key,
+                                  uint8_t *to, size_t tolen,
+                                  const uint8_t *from, size_t fromlen);
+int crypto_cipher_decrypt_with_iv(const uint8_t *key,
+                                  uint8_t *to, size_t tolen,
+                                  const uint8_t *from, size_t fromlen);
 
 /* SHA-1 and other digests. */
-int crypto_digest(char *digest, const char *m, size_t len);
-int crypto_digest256(char *digest, const char *m, size_t len,
+int crypto_digest(uint8_t *digest, const uint8_t *m, size_t len);
+int crypto_digest256(uint8_t *digest, const uint8_t *m, size_t len,
                      digest_algorithm_t algorithm);
-int crypto_digest512(char *digest, const char *m, size_t len,
+int crypto_digest512(uint8_t *digest, const uint8_t *m, size_t len,
                      digest_algorithm_t algorithm);
-int crypto_digest_all(digests_t *ds_out, const char *m, size_t len);
+int crypto_digest_all(digests_t *ds_out, const uint8_t *m, size_t len);
 struct smartlist_t;
 void crypto_digest_smartlist_prefix(char *digest_out, size_t len_out,
                                     const char *prepend,
@@ -230,22 +230,22 @@ void crypto_digest_smartlist_prefix(char *digest_out, size_t len_out,
 void crypto_digest_smartlist(char *digest_out, size_t len_out,
                              const struct smartlist_t *lst, const char *append,
                              digest_algorithm_t alg);
-const char *crypto_digest_algorithm_get_name(digest_algorithm_t alg);
-int crypto_digest_algorithm_parse_name(const char *name);
+const uint8_t *crypto_digest_algorithm_get_name(digest_algorithm_t alg);
+int crypto_digest_algorithm_parse_name(const uint8_t *name);
 crypto_digest_t *crypto_digest_new(void);
 crypto_digest_t *crypto_digest256_new(digest_algorithm_t algorithm);
 crypto_digest_t *crypto_digest512_new(digest_algorithm_t algorithm);
 void crypto_digest_free(crypto_digest_t *digest);
-void crypto_digest_add_bytes(crypto_digest_t *digest, const char *data,
+void crypto_digest_add_bytes(crypto_digest_t *digest, const uint8_t *data,
                              size_t len);
 void crypto_digest_get_digest(crypto_digest_t *digest,
-                              char *out, size_t out_len);
+                              uint8_t *out, size_t out_len);
 crypto_digest_t *crypto_digest_dup(const crypto_digest_t *digest);
 void crypto_digest_assign(crypto_digest_t *into,
                           const crypto_digest_t *from);
-void crypto_hmac_sha256(char *hmac_out,
-                        const char *key, size_t key_len,
-                        const char *msg, size_t msg_len);
+void crypto_hmac_sha256(uint8_t *hmac_out,
+                        const uint8_t *key, size_t key_len,
+                        const uint8_t *msg, size_t msg_len);
 crypto_xof_t *crypto_xof_new(void);
 void crypto_xof_add_bytes(crypto_xof_t *xof, const uint8_t *data, size_t len);
 void crypto_xof_squeeze_bytes(crypto_xof_t *xof, uint8_t *out, size_t len);
@@ -259,11 +259,11 @@ crypto_dh_t *crypto_dh_new(int dh_type);
 crypto_dh_t *crypto_dh_dup(const crypto_dh_t *dh);
 int crypto_dh_get_bytes(crypto_dh_t *dh);
 int crypto_dh_generate_public(crypto_dh_t *dh);
-int crypto_dh_get_public(crypto_dh_t *dh, char *pubkey_out,
+int crypto_dh_get_public(crypto_dh_t *dh, uint8_t *pubkey_out,
                          size_t pubkey_out_len);
 ssize_t crypto_dh_compute_secret(int severity, crypto_dh_t *dh,
-                             const char *pubkey, size_t pubkey_len,
-                             char *secret_out, size_t secret_out_len);
+                             const uint8_t *pubkey, size_t pubkey_len,
+                             uint8_t *secret_out, size_t secret_out_len);
 void crypto_dh_free(crypto_dh_t *dh);
 
 int crypto_expand_key_material_TAP(const uint8_t *key_in,
@@ -277,8 +277,8 @@ int crypto_expand_key_material_rfc5869_sha256(
 
 /* random numbers */
 int crypto_seed_rng(void) ATTR_WUR;
-MOCK_DECL(void,crypto_rand,(char *to, size_t n));
-void crypto_rand_unmocked(char *to, size_t n);
+MOCK_DECL(void,crypto_rand,(uint8_t *to, size_t n));
+void crypto_rand_unmocked(uint8_t *to, size_t n);
 void crypto_strongest_rand(uint8_t *out, size_t out_len);
 int crypto_rand_int(unsigned int max);
 int crypto_rand_int_range(unsigned int min, unsigned int max);

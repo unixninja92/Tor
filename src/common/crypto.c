@@ -97,8 +97,8 @@ struct crypto_pk_t
 /** Key and stream information for a stream cipher. */
 struct crypto_cipher_t
 {
-  char key[CIPHER_KEY_LEN]; /**< The raw key. */
-  char iv[CIPHER_IV_LEN]; /**< The initial IV. */
+  uint8_t key[CIPHER_KEY_LEN]; /**< The raw key. */
+  uint8_t iv[CIPHER_IV_LEN]; /**< The initial IV. */
   aes_cnt_cipher_t *cipher; /**< The key in format usable for counter-mode AES
                              * encryption */
 };
@@ -146,7 +146,7 @@ static int crypto_global_initialized_ = 0;
  * <b>doing</b> to describe our current activities.
  */
 static void
-crypto_log_errors(int severity, const char *doing)
+crypto_log_errors(int severity, const uint8_t *doing)
 {
   unsigned long err;
   const char *msg, *lib, *func;
@@ -326,7 +326,7 @@ crypto_early_init(void)
 /** Initialize the crypto library.  Return 0 on success, -1 on failure.
  */
 int
-crypto_global_init(int useAccel, const char *accelName, const char *accelDir)
+crypto_global_init(int useAccel, const uint8_t *accelName, const uint8_t *accelDir)
 {
   if (!crypto_global_initialized_) {
     if (crypto_early_init() < 0)
@@ -509,7 +509,7 @@ crypto_pk_free(crypto_pk_t *env)
  * provide NULL in place of either one, it is generated at random.
  */
 crypto_cipher_t *
-crypto_cipher_new_with_iv(const char *key, const char *iv)
+crypto_cipher_new_with_iv(const uint8_t *key, const uint8_t *iv)
 {
   crypto_cipher_t *env;
 
@@ -532,7 +532,7 @@ crypto_cipher_new_with_iv(const char *key, const char *iv)
 /** Return a new crypto_cipher_t with the provided <b>key</b> and an IV of all
  * zero bytes.  */
 crypto_cipher_t *
-crypto_cipher_new(const char *key)
+crypto_cipher_new(const uint8_t *key)
 {
   char zeroiv[CIPHER_IV_LEN];
   memset(zeroiv, 0, sizeof(zeroiv));
@@ -941,8 +941,8 @@ crypto_pk_copy_full(crypto_pk_t *env)
  * at least the length of the modulus of <b>env</b>.
  */
 int
-crypto_pk_public_encrypt(crypto_pk_t *env, char *to, size_t tolen,
-                         const char *from, size_t fromlen, int padding)
+crypto_pk_public_encrypt(crypto_pk_t *env, uint8_t *to, size_t tolen,
+                         const uint8_t *from, size_t fromlen, int padding)
 {
   int r;
   tor_assert(env);
@@ -970,9 +970,9 @@ crypto_pk_public_encrypt(crypto_pk_t *env, char *to, size_t tolen,
  * at least the length of the modulus of <b>env</b>.
  */
 int
-crypto_pk_private_decrypt(crypto_pk_t *env, char *to,
+crypto_pk_private_decrypt(crypto_pk_t *env, uint8_t *to,
                           size_t tolen,
-                          const char *from, size_t fromlen,
+                          const uint8_t *from, size_t fromlen,
                           int padding, int warnOnFailure)
 {
   int r;
@@ -1007,9 +1007,9 @@ crypto_pk_private_decrypt(crypto_pk_t *env, char *to,
  * at least the length of the modulus of <b>env</b>.
  */
 int
-crypto_pk_public_checksig(const crypto_pk_t *env, char *to,
+crypto_pk_public_checksig(const crypto_pk_t *env, uint8_t *to,
                           size_t tolen,
-                          const char *from, size_t fromlen)
+                          const uint8_t *from, size_t fromlen)
 {
   int r;
   tor_assert(env);
@@ -1034,8 +1034,8 @@ crypto_pk_public_checksig(const crypto_pk_t *env, char *to,
  * SHA1(data).  Else return -1.
  */
 int
-crypto_pk_public_checksig_digest(crypto_pk_t *env, const char *data,
-                               size_t datalen, const char *sig, size_t siglen)
+crypto_pk_public_checksig_digest(crypto_pk_t *env, const uint8_t *data,
+                               size_t datalen, const uint8_t *sig, size_t siglen)
 {
   char digest[DIGEST_LEN];
   char *buf;
@@ -1079,8 +1079,8 @@ crypto_pk_public_checksig_digest(crypto_pk_t *env, const char *data,
  * at least the length of the modulus of <b>env</b>.
  */
 int
-crypto_pk_private_sign(const crypto_pk_t *env, char *to, size_t tolen,
-                       const char *from, size_t fromlen)
+crypto_pk_private_sign(const crypto_pk_t *env, uint8_t *to, size_t tolen,
+                       const uint8_t *from, size_t fromlen)
 {
   int r;
   tor_assert(env);
@@ -1111,8 +1111,8 @@ crypto_pk_private_sign(const crypto_pk_t *env, char *to, size_t tolen,
  * at least the length of the modulus of <b>env</b>.
  */
 int
-crypto_pk_private_sign_digest(crypto_pk_t *env, char *to, size_t tolen,
-                              const char *from, size_t fromlen)
+crypto_pk_private_sign_digest(crypto_pk_t *env, uint8_t *to, size_t tolen,
+                              const uint8_t *from, size_t fromlen)
 {
   int r;
   char digest[DIGEST_LEN];
@@ -1139,8 +1139,8 @@ crypto_pk_private_sign_digest(crypto_pk_t *env, char *to, size_t tolen,
  */
 int
 crypto_pk_public_hybrid_encrypt(crypto_pk_t *env,
-                                char *to, size_t tolen,
-                                const char *from,
+                                uint8_t *to, size_t tolen,
+                                const uint8_t *from,
                                 size_t fromlen,
                                 int padding, int force)
 {
@@ -1200,9 +1200,9 @@ crypto_pk_public_hybrid_encrypt(crypto_pk_t *env,
  * written on success, -1 on failure. */
 int
 crypto_pk_private_hybrid_decrypt(crypto_pk_t *env,
-                                 char *to,
+                                 uint8_t *to,
                                  size_t tolen,
-                                 const char *from,
+                                 const uint8_t *from,
                                  size_t fromlen,
                                  int padding, int warnOnFailure)
 {
@@ -1258,7 +1258,7 @@ crypto_pk_private_hybrid_decrypt(crypto_pk_t *env,
  * Return -1 on error, or the number of characters used on success.
  */
 int
-crypto_pk_asn1_encode(crypto_pk_t *pk, char *dest, size_t dest_len)
+crypto_pk_asn1_encode(crypto_pk_t *pk, uint8_t *dest, size_t dest_len)
 {
   int len;
   unsigned char *buf = NULL;
@@ -1283,7 +1283,7 @@ crypto_pk_asn1_encode(crypto_pk_t *pk, char *dest, size_t dest_len)
  * success and NULL on failure.
  */
 crypto_pk_t *
-crypto_pk_asn1_decode(const char *str, size_t len)
+crypto_pk_asn1_decode(const uint8_t *str, size_t len)
 {
   RSA *rsa;
   unsigned char *buf;
@@ -1304,7 +1304,7 @@ crypto_pk_asn1_decode(const char *str, size_t len)
  * Return 0 on success, -1 on failure.
  */
 int
-crypto_pk_get_digest(const crypto_pk_t *pk, char *digest_out)
+crypto_pk_get_digest(const crypto_pk_t *pk, uint8_t *digest_out)
 {
   unsigned char *buf = NULL;
   int len;
@@ -1416,7 +1416,7 @@ crypto_pk_get_hashed_fingerprint(crypto_pk_t *pk, char *fp_out)
  * It is the caller's responsibility to sanitize and free the resulting buffer.
  */
 int
-crypto_pk_base64_encode(const crypto_pk_t *pk, char **priv_out)
+crypto_pk_base64_encode(const crypto_pk_t *pk, uint8_t **priv_out)
 {
   unsigned char *der = NULL;
   int der_len;
@@ -1447,7 +1447,7 @@ crypto_pk_base64_encode(const crypto_pk_t *pk, char **priv_out)
  * on failure.
  */
 crypto_pk_t *
-crypto_pk_base64_decode(const char *str, size_t len)
+crypto_pk_base64_decode(const uint8_t *str, size_t len)
 {
   crypto_pk_t *pk = NULL;
 
@@ -1484,7 +1484,7 @@ crypto_pk_base64_decode(const char *str, size_t len)
 
 /** Return a pointer to the key set for the cipher in <b>env</b>.
  */
-const char *
+const uint8_t *
 crypto_cipher_get_key(crypto_cipher_t *env)
 {
   return env->key;
@@ -1495,8 +1495,8 @@ crypto_cipher_get_key(crypto_cipher_t *env)
  * Does not check for failure.
  */
 int
-crypto_cipher_encrypt(crypto_cipher_t *env, char *to,
-                      const char *from, size_t fromlen)
+crypto_cipher_encrypt(crypto_cipher_t *env, uint8_t *to,
+                      const uint8_t *from, size_t fromlen)
 {
   tor_assert(env);
   tor_assert(env->cipher);
@@ -1514,8 +1514,8 @@ crypto_cipher_encrypt(crypto_cipher_t *env, char *to,
  * Does not check for failure.
  */
 int
-crypto_cipher_decrypt(crypto_cipher_t *env, char *to,
-                      const char *from, size_t fromlen)
+crypto_cipher_decrypt(crypto_cipher_t *env, uint8_t *to,
+                      const uint8_t *from, size_t fromlen)
 {
   tor_assert(env);
   tor_assert(from);
@@ -1530,7 +1530,7 @@ crypto_cipher_decrypt(crypto_cipher_t *env, char *to,
  * on success, return 0. Does not check for failure.
  */
 int
-crypto_cipher_crypt_inplace(crypto_cipher_t *env, char *buf, size_t len)
+crypto_cipher_crypt_inplace(crypto_cipher_t *env, uint8_t *buf, size_t len)
 {
   tor_assert(len < SIZE_T_CEILING);
   aes_crypt_inplace(env->cipher, buf, len);
@@ -1544,9 +1544,9 @@ crypto_cipher_crypt_inplace(crypto_cipher_t *env, char *buf, size_t len)
  * number of bytes written, on failure, return -1.
  */
 int
-crypto_cipher_encrypt_with_iv(const char *key,
-                              char *to, size_t tolen,
-                              const char *from, size_t fromlen)
+crypto_cipher_encrypt_with_iv(const uint8_t *key,
+                              uint8_t *to, size_t tolen,
+                              const uint8_t *from, size_t fromlen)
 {
   crypto_cipher_t *cipher;
   tor_assert(from);
@@ -1573,9 +1573,9 @@ crypto_cipher_encrypt_with_iv(const char *key,
  * number of bytes written, on failure, return -1.
  */
 int
-crypto_cipher_decrypt_with_iv(const char *key,
-                              char *to, size_t tolen,
-                              const char *from, size_t fromlen)
+crypto_cipher_decrypt_with_iv(const uint8_t *key,
+                              uint8_t *to, size_t tolen,
+                              const uint8_t *from, size_t fromlen)
 {
   crypto_cipher_t *cipher;
   tor_assert(key);
@@ -1602,18 +1602,18 @@ crypto_cipher_decrypt_with_iv(const char *key,
  * Return 0 on success, 1 on failure.
  */
 int
-crypto_digest(char *digest, const char *m, size_t len)
+crypto_digest(uint8_t *digest, const uint8_t *m, size_t len)
 {
   tor_assert(m);
   tor_assert(digest);
-  return (SHA1((const unsigned char*)m,len,(unsigned char*)digest) == NULL);
+  return (SHA1((const unsigned uint8_t*)m,len,(unsigned uint8_t*)digest) == NULL);
 }
 
 /** Compute a 256-bit digest of <b>len</b> bytes in data stored in <b>m</b>,
  * using the algorithm <b>algorithm</b>.  Write the DIGEST_LEN256-byte result
  * into <b>digest</b>.  Return 0 on success, 1 on failure. */
 int
-crypto_digest256(char *digest, const char *m, size_t len,
+crypto_digest256(uint8_t *digest, const uint8_t *m, size_t len,
                  digest_algorithm_t algorithm)
 {
   tor_assert(m);
@@ -1630,7 +1630,7 @@ crypto_digest256(char *digest, const char *m, size_t len,
  * using the algorithm <b>algorithm</b>.  Write the DIGEST_LEN512-byte result
  * into <b>digest</b>.  Return 0 on success, 1 on failure. */
 int
-crypto_digest512(char *digest, const char *m, size_t len,
+crypto_digest512(uint8_t *digest, const uint8_t *m, size_t len,
                  digest_algorithm_t algorithm)
 {
   tor_assert(m);
@@ -1648,7 +1648,7 @@ crypto_digest512(char *digest, const char *m, size_t len,
  * <b>len</b> bytes in <b>m</b> that we know how to compute.  Return 0 on
  * success, -1 on failure. */
 int
-crypto_digest_all(digests_t *ds_out, const char *m, size_t len)
+crypto_digest_all(digests_t *ds_out, const uint8_t *m, size_t len)
 {
   int i;
   tor_assert(ds_out);
@@ -1840,7 +1840,7 @@ crypto_digest_free(crypto_digest_t *digest)
 /** Add <b>len</b> bytes from <b>data</b> to the digest object.
  */
 void
-crypto_digest_add_bytes(crypto_digest_t *digest, const char *data,
+crypto_digest_add_bytes(crypto_digest_t *digest, const uint8_t *data,
                         size_t len)
 {
   tor_assert(digest);
@@ -1876,7 +1876,7 @@ crypto_digest_add_bytes(crypto_digest_t *digest, const char *data,
  */
 void
 crypto_digest_get_digest(crypto_digest_t *digest,
-                         char *out, size_t out_len)
+                         uint8_t *out, size_t out_len)
 {
   unsigned char r[DIGEST512_LEN];
   crypto_digest_t tmpenv;
@@ -2008,9 +2008,9 @@ crypto_digest_smartlist_prefix(char *digest_out, size_t len_out,
  * result in <b>hmac_out</b>. Asserts on failure.
  */
 void
-crypto_hmac_sha256(char *hmac_out,
-                   const char *key, size_t key_len,
-                   const char *msg, size_t msg_len)
+crypto_hmac_sha256(uint8_t *hmac_out,
+                   const uint8_t *key, size_t key_len,
+                   const uint8_t *msg, size_t msg_len)
 {
   unsigned char *rv = NULL;
   /* If we've got OpenSSL >=0.9.8 we can use its hmac implementation. */
@@ -2250,7 +2250,7 @@ crypto_dh_generate_public(crypto_dh_t *dh)
  * success, -1 on failure.  <b>pubkey_len</b> must be \>= DH_BYTES.
  */
 int
-crypto_dh_get_public(crypto_dh_t *dh, char *pubkey, size_t pubkey_len)
+crypto_dh_get_public(crypto_dh_t *dh, uint8_t *pubkey, size_t pubkey_len)
 {
   int bytes;
   tor_assert(dh);
@@ -2324,8 +2324,8 @@ tor_check_dh_key(int severity, BIGNUM *bn)
  */
 ssize_t
 crypto_dh_compute_secret(int severity, crypto_dh_t *dh,
-                         const char *pubkey, size_t pubkey_len,
-                         char *secret_out, size_t secret_bytes_out)
+                         const uint8_t *pubkey, size_t pubkey_len,
+                         uint8_t *secret_out, size_t secret_bytes_out)
 {
   char *secret_tmp = NULL;
   BIGNUM *pubkey_bn = NULL;
@@ -2744,7 +2744,7 @@ crypto_seed_rng(void)
  * entropy, it must terminate the process instead.
  */
 MOCK_IMPL(void,
-crypto_rand, (char *to, size_t n))
+crypto_rand, (uint8_t *to, size_t n))
 {
   crypto_rand_unmocked(to, n);
 }
@@ -2756,7 +2756,7 @@ crypto_rand, (char *to, size_t n))
  * entropy, it must terminate the process instead.
  */
 void
-crypto_rand_unmocked(char *to, size_t n)
+crypto_rand_unmocked(uint8_t *to, size_t n)
 {
   int r;
   if (n == 0)
